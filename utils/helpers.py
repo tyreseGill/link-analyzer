@@ -13,6 +13,23 @@ def query_url(url: str) -> dict:
     return query
 
 
+def normalize_expiration_date (exp) -> dt:
+    """
+    Ensures a single expiration date is obtained whether a domain has one or multiple such dates.
+
+    Returns:
+        Datetime object representing earliest expiration date.
+    """
+    # Gets earliest expiration date if multiple exist
+    if isinstance(exp, list):
+        exp = min(exp)
+    
+    # Converts expiration date to standard timezone for comparison
+    exp = exp.astimezone(tz.utc)
+
+    return exp
+
+
 def validate_certificate(query: dict) -> bool:
     """
     Verifies if the certificate for a domain is not expired and still valid.
@@ -24,12 +41,7 @@ def validate_certificate(query: dict) -> bool:
     cert_expiration_date = query.expiration_date
     current_date = dt.now(tz.utc)
     
-    # Fetches earliest expiration date if multiple expiration dates exist
-    if isinstance(cert_expiration_date, list):
-        cert_expiration_date = min(cert_expiration_date)
-    
-    # Converts expiration date to standard timezone for comparison
-    cert_expiration_date = cert_expiration_date.astimezone(tz.utc)
+    cert_expiration_date = normalize_expiration_date(cert_expiration_date)
 
     # Determines if certificate is expired or not
     if cert_expiration_date < current_date:
