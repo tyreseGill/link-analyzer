@@ -41,11 +41,11 @@ def parse_args() -> dict:
     }
 
 
-def print_cert_status(valid_cert_bool: bool):
+def print_cert_status(valid_cert_flag: bool):
     """
     Outputs status of certificate associated with a domain.
     """
-    if valid_cert_bool:
+    if valid_cert_flag:
         print("Certificate Status: Valid")
     else:
         print("Certificate Status: Expired")
@@ -72,8 +72,7 @@ def print_cert_details(query: dict):
     print(f"Domain Name: {dn}")
     print(f"Age: {age} {age_measurement}")
     print(f"Expiration Date: {ed.month}/{ed.day}/{ed.year}")
-    print(f"Registrar: {reg}")
-
+    print(f"Registrar: {reg}")    
 
 
 def main():
@@ -83,15 +82,24 @@ def main():
     params = parse_args()
     input = params['input']
 
-    # Early return
+    # Early return if URL wasn't provided
     if not input:
         return
 
     query = query_url(input)
-    valid_cert_bool = validate_certificate(query)
+
+    # Indicates whether a URL exists or not
+    dne_flag = all(attr is None for attr in query.values())
+
+    # Early return if URL doesn't exist
+    if dne_flag:
+        print(f'No matches were found for "{input}". Try again.')
+        return
+
+    valid_cert_flag = validate_certificate(query)
 
     print_cert_details(query)
-    print_cert_status(valid_cert_bool)
+    print_cert_status(valid_cert_flag)
 
 
 main()
