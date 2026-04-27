@@ -1,1 +1,1 @@
-from .helpers import query_url
+from .helpers import query_url, validate_certificate

@@ -1,4 +1,5 @@
 import whois
+from datetime import datetime as dt, timezone as tz
 
 
 def query_url(url: str) -> dict:
@@ -10,3 +11,22 @@ def query_url(url: str) -> dict:
     """
     query = whois.whois(url)
     return query
+
+
+def validate_certificate(query: dict) -> bool:
+    """
+    Verifies if the certificate for a domain is not expired and still valid.
+
+    Returns:
+        bool: True if the certificate for the domain has not yet expired. Otherwise, false.
+    """
+    # Initializes date variables with global timezone standard
+    cert_expiration_date = query.expiration_date.astimezone(tz.utc)
+    current_date = dt.now(tz.utc)
+
+    # Determines if certificate is expired or not
+    if cert_expiration_date < current_date:
+        return False
+    else:
+        return True
+    

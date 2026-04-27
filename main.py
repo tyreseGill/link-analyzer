@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from utils import query_url
+from utils import query_url, validate_certificate
 import argparse
 import sys
 import requests
@@ -44,6 +44,16 @@ def parse_args() -> dict:
     }
 
 
+def print_cert_status(valid_cert_bool: bool):
+    """
+    Prints status of certificate associated with a domain.
+    """
+    if valid_cert_bool:
+        print("Certificate Status: Valid")
+    else:
+        print("Certificate Status: Expired")
+
+
 def main():
     """
     Organizes the business logic and flow of the program.
@@ -51,10 +61,15 @@ def main():
     params = parse_args()
     input = params['input']
 
-    # Outputs attributes of provided URL
-    if input:
-        query = query_url(input)
-        print(query)
+    # Early return
+    if not input:
+        return
+
+    query = query_url(input)
+    valid_cert_bool = validate_certificate(query)
+
+    print(query)
+    print_cert_status(valid_cert_bool)
 
 
 main()
