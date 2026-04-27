@@ -1,16 +1,4 @@
-import whois
 from datetime import datetime as dt, timezone as tz
-
-
-def query_url(url: str) -> dict:
-    """
-    Performs a WHOIS lookup on the provided URL.
-
-    Returns:
-        dict: Collection of details associated with the URL.
-    """
-    query = whois.whois(url)
-    return query
 
 
 def normalize_expiration_date (exp) -> dt:
