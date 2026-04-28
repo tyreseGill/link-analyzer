@@ -18,21 +18,21 @@ def normalize_expiration_date (exp) -> dt:
     return exp
 
 
-def validate_certificate(query: dict) -> bool:
+def is_domain_registration_valid(query: dict) -> bool:
     """
-    Verifies if the certificate for a domain is not expired and still valid.
+    Verifies if the domain has not expired and is still valid.
 
     Returns:
-        bool: True if the certificate for the domain has not yet expired. Otherwise, false.
+        bool: True if the domain has not yet expired. Otherwise, false.
     """
     # Initializes date variables with global timezone standard
-    cert_expiration_date = query.expiration_date
+    domain_expiration_date = query.expiration_date
     current_date = dt.now(tz.utc)
     
-    cert_expiration_date = normalize_expiration_date(cert_expiration_date)
+    domain_expiration_date = normalize_expiration_date(domain_expiration_date)
 
-    # Determines if certificate is expired or not
-    if cert_expiration_date < current_date:
+    # Determines if domain is expired or not
+    if domain_expiration_date < current_date:
         return False
     else:
         return True

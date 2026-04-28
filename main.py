@@ -1,4 +1,4 @@
-from utils import query_url, validate_certificate, print_cert_details, print_cert_status, print_https_status
+from utils import query_url, is_domain_registration_valid, print_domain_reg_details, print_domain_reg_status, print_https_status
 import argparse
 import sys
 
@@ -63,10 +63,10 @@ def main():
         print(f'No matches were found for "{input}". Try again.')
         return
 
-    valid_cert_flag = validate_certificate(query)
+    valid_domain_flag = is_domain_registration_valid(query)
 
-    print_cert_details(query)
-    print_cert_status(valid_cert_flag)
+    print_domain_reg_details(query)
+    print_domain_reg_status(valid_domain_flag)
     print_https_status(domain_name)
 
 

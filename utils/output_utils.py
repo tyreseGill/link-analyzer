@@ -3,19 +3,19 @@ from .helpers import normalize_expiration_date
 from .url_utils import supports_https
 
 
-def print_cert_status(valid_cert_flag: bool):
+def print_domain_reg_status(valid_domain_reg_flag: bool):
     """
-    Outputs status of certificate associated with a domain.
+    Outputs status of domain registration.
     """
-    if valid_cert_flag:
-        print("Certificate Status: Valid")
+    if valid_domain_reg_flag:
+        print("Domain Registration Status: Active")
     else:
-        print("Certificate Status: Expired")
+        print("Domain Registration Status: Expired")
 
 
-def print_cert_details(query: dict):
+def print_domain_reg_details(query: dict):
     """
-    Outputs relevant details of domain certificate.
+    Outputs relevant details of domain registration.
     """
     dn = query.domain_name
     cd = normalize_expiration_date(query.creation_date)
@@ -31,10 +31,10 @@ def print_cert_details(query: dict):
     else:
         age = age.days
 
-    print(f"Domain Name: {dn}")
+    print(f"Domain Name: {dn.lower()}")
     print(f"Age: {age} {age_measurement}")
     print(f"Expiration Date: {ed.month}/{ed.day}/{ed.year}")
-    print(f"Registrar: {reg}")
+    print(f"Registrar: {reg}\n")
 
 
 def print_https_status(domain_name):
@@ -44,6 +44,6 @@ def print_https_status(domain_name):
     has_https = supports_https(domain_name)
 
     if has_https:
-        print("Supports HTTPS: YES")
+        print("HTTPS Supported: Yes")
     else:
-        print("Supports HTTPS: NO")
+        print("HTTPS Supported: No")
