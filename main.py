@@ -1,4 +1,4 @@
-from utils import query_url, print_domain_reg_details
+from utils import query_url, display_domain_overview 
 import argparse
 import sys
 
@@ -53,7 +53,6 @@ def main():
         return
 
     query = query_url(input)
-    domain_name = query.domain_name
 
     # Indicates whether a URL exists or not
     dne_flag = all(attr is None for attr in query.values())
@@ -63,7 +62,7 @@ def main():
         print(f'No matches were found for "{input}". Make sure you have a stable internet connection and that any VPNs are off before you try again.')
         return
 
-    print_domain_reg_details(query)
+    display_domain_overview(query)
 
 
 main()

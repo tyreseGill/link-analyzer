@@ -4,28 +4,94 @@ from .risk_utils import classify_domain_age, classify_expiration_risk, classify_
 from .style_utils import RESET
 
 
-def print_domain_reg_details(query: dict):
+def classify_risk(age: dt, expiration_date: dt, valid_domain_flag: bool, domain_name: str) -> dict:
     """
-    Outputs relevant details of domain registration.
+    Classifies severity of individual domain attributes.
+
+    Returns:
+        dict: Provides risk summary for each domain attribute.
     """
-    domain_name = query.domain_name
-    valid_domain_flag = is_domain_registration_valid(query)
-    creation_date = normalize_expiration_date(query.creation_date)
-    exp_date = normalize_expiration_date(query.expiration_date)
-    reg = query.registrar
-
-    age = dt.now(tz.utc) - creation_date
-
-    # Classifies severity of individual domain attributes 
     age_num, age_unit, age_color = classify_domain_age(age)
-    exp_date_color = classify_expiration_risk(exp_date, age)
+    expiration_date_color = classify_expiration_risk(expiration_date, age)
     domain_reg_color, domain_reg_status = classify_domain_registration(valid_domain_flag)
     https_supp_color, https_supp_status = classify_https_status(domain_name)
 
+    return {
+        "age": {
+            "value": age_num,
+            "unit": age_unit,
+            "color": age_color
+        },
+        "expiration_date": {
+            "color": expiration_date_color
+        },
+        "domain_registration": {
+            "color": domain_reg_color,
+            "status": domain_reg_status
+        },
+        "https_support": {
+            "color": https_supp_color,
+            "status": https_supp_status
+        }
+    }
 
-    print(f"Domain Name: {domain_name.lower()}")
-    print(f"Age: {age_color}{age_num} {age_unit}{RESET}")
-    print(f"Expiration Date: {exp_date_color}{exp_date.month}/{exp_date.day}/{exp_date.year}{RESET}")
-    print(f"Registrar: {reg}\n")
-    print(f"Domain Registration Status: {domain_reg_color}{domain_reg_status}{RESET}")
-    print(f"HTTPS Supported: {https_supp_color}{https_supp_status}{RESET}")
+
+def print_domain_identity(domain_name: str):
+    print(f"Domain Name: {domain_name}")
+
+
+def print_domain_age(risk: dict):
+    color = risk["age"]["color"]
+    value = risk["age"]["value"]
+    unit = risk["age"]["unit"]
+    print(f"Age: {color}{value} {unit}{RESET}")
+
+
+def print_expiration_info(risk: dict, expiration_date: dt):
+    color = risk["expiration_date"]["color"]
+    expiration_date = expiration_date.date()
+    print(f"Expiration Date: {color}{expiration_date}{RESET}")
+
+
+def print_registrar_info(registar: str):
+    print(f"Registrar: {registar}\n")
+
+
+def print_domain_registration_status(risk: dict):
+    color = risk["domain_registration"]["color"]
+    status = risk["domain_registration"]["status"]
+    print(f"Domain Registration Status: {color}{status}{RESET}")
+
+
+def print_https_support_status(risk: dict):
+    color = risk["https_support"]["color"]
+    status = risk["https_support"]["status"]
+    print(f"HTTPS Supported: {color}{status}{RESET}")
+
+
+def display_domain_overview(query: dict):
+    """
+    Displays summary of domain registration with security warnings.
+    """
+    domain_name = query.domain_name.lower()
+    registar = query.registrar
+
+    valid_domain_flag = is_domain_registration_valid(query)
+    creation_date = normalize_expiration_date(query.creation_date)
+    expiration_date = normalize_expiration_date(query.expiration_date)
+
+    domain_age = dt.now(tz.utc) - creation_date
+
+    risk = classify_risk(
+        age=domain_age,
+        expiration_date=expiration_date,
+        valid_domain_flag=valid_domain_flag,
+        domain_name=domain_name
+    )
+
+    print_domain_identity(domain_name)
+    print_domain_age(risk)
+    print_expiration_info(risk, expiration_date)
+    print_registrar_info(registar)
+    print_domain_registration_status(risk)
+    print_https_support_status(risk)
