@@ -1,6 +1,7 @@
-from utils import query_url, validate_certificate, print_cert_details, print_cert_status
+from utils import query_url, validate_certificate, print_cert_details, print_cert_status, print_https_status
 import argparse
 import sys
+
 
 class SafeArgumentParser(argparse.ArgumentParser):
     """
@@ -52,6 +53,7 @@ def main():
         return
 
     query = query_url(input)
+    domain_name = query.domain_name
 
     # Indicates whether a URL exists or not
     dne_flag = all(attr is None for attr in query.values())
@@ -65,6 +67,7 @@ def main():
 
     print_cert_details(query)
     print_cert_status(valid_cert_flag)
+    print_https_status(domain_name)
 
 
 main()

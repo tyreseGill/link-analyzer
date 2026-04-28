@@ -1,5 +1,6 @@
 from datetime import datetime as dt, timezone as tz
 from .helpers import normalize_expiration_date
+from .url_utils import supports_https
 
 
 def print_cert_status(valid_cert_flag: bool):
@@ -34,3 +35,15 @@ def print_cert_details(query: dict):
     print(f"Age: {age} {age_measurement}")
     print(f"Expiration Date: {ed.month}/{ed.day}/{ed.year}")
     print(f"Registrar: {reg}")
+
+
+def print_https_status(domain_name):
+    """
+    Outputs HTTPS status of a provided domain name.
+    """
+    has_https = supports_https(domain_name)
+
+    if has_https:
+        print("Supports HTTPS: YES")
+    else:
+        print("Supports HTTPS: NO")
