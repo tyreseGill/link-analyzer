@@ -1,5 +1,6 @@
 from datetime import datetime as dt, timezone as tz
-from .style_utils import GREEN, RED, YELLOW, RESET
+from .style_utils import GREEN, RED, YELLOW
+from .url_utils import supports_https
 
 
 DAYS_IN_YEAR = 365
@@ -45,3 +46,32 @@ def classify_expiration_risk(exp_date: dt, domain_age: dt) -> str:
         return RED
 
     return GREEN
+
+
+def classify_domain_registration(valid_domain_flag: bool) -> tuple:
+    """
+    Outputs status of domain registration.
+
+    Returns:
+        str: Color indicating whether a site's domain has expired or not. 
+        str: Current status of the site's domain.
+    """
+    color = GREEN if valid_domain_flag else RED
+    status = "Active" if valid_domain_flag else "Expired"
+
+    return color, status
+
+
+def classify_https_status(domain_name: str) -> tuple:
+    """
+    Outputs HTTPS status of a provided domain name.
+
+    Returns:
+        str: Color indicating whether site is HTTPS-supported or not. 
+        str: Current HTTPS status of the site's domain.
+    """
+    has_https = supports_https(domain_name)
+    color = GREEN if has_https else RED
+    status = "Yes" if has_https else "No"
+
+    return color, status

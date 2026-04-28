@@ -1,4 +1,4 @@
-from utils import query_url, is_domain_registration_valid, print_domain_reg_details, print_domain_reg_status, print_https_status
+from utils import query_url, print_domain_reg_details
 import argparse
 import sys
 
@@ -60,14 +60,10 @@ def main():
 
     # Early return if URL doesn't exist
     if dne_flag:
-        print(f'No matches were found for "{input}". Try again.')
+        print(f'No matches were found for "{input}". Make sure you have a stable internet connection and that any VPNs are off before you try again.')
         return
 
-    valid_domain_flag = is_domain_registration_valid(query)
-
     print_domain_reg_details(query)
-    print_domain_reg_status(valid_domain_flag)
-    print_https_status(domain_name)
 
 
 main()
