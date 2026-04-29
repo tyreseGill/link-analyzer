@@ -7,6 +7,39 @@ DAYS_IN_YEAR = 365
 DAYS_IN_MONTH = 30
 
 
+def classify_domain_name(domain_name_and_top_level_domain: str) -> str:
+    """
+    Classifies domain name risk heuristically.
+
+    Returns:
+        str: Color indicating trustworthiness of a domain.
+    """
+    SAFE_TLDS = ["com", "org", "net"]
+    URL_SHORTENERS = ["bit.ly", "tinyurl.com", "t.co"]
+
+    domain_name, top_level_domain = domain_name_and_top_level_domain.split(".")
+
+    # Strong indicators
+    if domain_name_and_top_level_domain in URL_SHORTENERS:
+        return RED
+
+    if "@" in domain_name:
+        return RED
+    
+    # Medium indicators
+    if any(char.isdigit() for char in domain_name):
+        return YELLOW
+    
+    if "-" in domain_name:
+        return YELLOW
+    
+    # Weak indicator
+    if top_level_domain not in SAFE_TLDS:
+        return YELLOW
+
+    return GREEN
+
+
 def classify_domain_age(domain_age: dt) -> tuple:
     """
     Classifies risk of domain age.
