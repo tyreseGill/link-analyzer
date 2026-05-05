@@ -1,5 +1,4 @@
 import re
-import requests
 import tldextract
 from urllib.parse import urlparse, parse_qs
 
@@ -14,22 +13,6 @@ SUSPICIOUS_KEYWORDS = ["redirect", "redirect_url", "return", "return_url",
 SAFE_TLDS = ["com", "org", "net"]
 
 URL_SHORTENERS = ["bit.ly", "tinyurl.com", "t.co"]
-
-
-def supports_https(domain_name: str) -> bool:
-    """
-    Attempts to connect to HTTPS-supporting site.
-
-    Return:
-        bool: True, if HTTPS-connection is established. Otherwise, false.
-    """
-    try:
-        requests.head(f"https://{domain_name}",
-                                 timeout=5,
-                                 allow_redirects=True)
-        return True
-    except requests.exceptions.SSLError:
-        return False
 
 
 # Extraction functions
