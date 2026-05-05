@@ -1,7 +1,7 @@
 from datetime import datetime as dt, timezone as tz
-from .helpers import normalize_expiration_date, is_domain_registration_valid
-from .risk_utils import classify_domain_name, classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url
+from .risk_utils import classify_domain_name, classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
 from .style_utils import RED, YELLOW, GREEN, RESET
+from .whois_utils import normalize_expiration_date
 
 
 def classify_risk(age: dt, expiration_date: dt, valid_domain_flag: bool, domain_name: str, url: str) -> dict:

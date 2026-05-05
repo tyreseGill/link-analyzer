@@ -8,6 +8,7 @@ from .url_utils import supports_https, contains_special_chars, contains_hyphens,
     fetch_suspicious_keywords, fetch_hyphens, fetch_at_symbols, fetch_special_chars, \
     is_url_shortener, is_tld_common, contains_suspicious_keywords, contains_scheme, \
     fetch_schemes, fetch_uncommon_tlds, extract_suspicious_params
+from .whois_utils import normalize_expiration_date
 
 
 DAYS_IN_YEAR = 365
@@ -117,6 +118,26 @@ def classify_https_status(domain_name: str) -> tuple:
     status = "Yes" if has_https else "No"
 
     return color, status
+
+
+def is_domain_registration_valid(query: dict) -> bool:
+    """
+    Verifies if the domain has not expired and is still valid.
+
+    Returns:
+        bool: True if the domain has not yet expired. Otherwise, false.
+    """
+    # Initializes date variables with global timezone standard
+    domain_expiration_date = query.expiration_date
+    current_date = dt.now(tz.utc)
+    
+    domain_expiration_date = normalize_expiration_date(domain_expiration_date)
+
+    # Determines if domain is expired or not
+    if domain_expiration_date < current_date:
+        return False
+    else:
+        return True
 
 
 def detect_url_spans(url: str) -> list:
