@@ -46,23 +46,23 @@ def main():
     Organizes the business logic and flow of the program.
     """
     params = parse_args()
-    input = params['input']
+    url = params['input']
 
     # Early return if URL wasn't provided
-    if not input:
+    if not url:
         return
 
-    query = query_url(input)
+    query = query_url(url)
 
     # Indicates whether a URL exists or not
     dne_flag = all(attr is None for attr in query.values())
 
     # Early return if URL doesn't exist
     if dne_flag:
-        print(f'No matches were found for "{input}". Make sure you have a stable internet connection and that any VPNs are off before you try again.')
+        print(f'No matches were found for "{url}". Make sure you have a stable internet connection and that any VPNs are off before you try again.')
         return
 
-    display_domain_overview(query)
+    display_domain_overview(url, query)
 
 
 main()
