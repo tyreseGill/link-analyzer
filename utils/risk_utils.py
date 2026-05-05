@@ -2,53 +2,16 @@ from datetime import datetime as dt, timezone as tz
 from .span_utils import Span, make_spans, collect_spans
 from .style_utils import GREEN, RED, YELLOW, RESET
 from .text_utils import find_literal, find_literals
-from .url_utils import supports_https, contains_special_chars, contains_hyphens, \
-    contains_digits, contains_at_symbols, contains_multiple_subdomains, \
+from .url_utils import supports_https, contains_multiple_subdomains, \
     extract_url_components, fetch_subdomains, fetch_ip_addresses, fetch_digits, \
     fetch_suspicious_keywords, fetch_hyphens, fetch_at_symbols, fetch_special_chars, \
-    is_url_shortener, is_tld_common, contains_suspicious_keywords, contains_scheme, \
+    is_url_shortener, contains_suspicious_keywords, contains_scheme, \
     fetch_schemes, fetch_uncommon_tlds, extract_suspicious_params
 from .whois_utils import normalize_expiration_date
 
 
 DAYS_IN_YEAR = 365
 DAYS_IN_MONTH = 30
-
-
-def classify_domain_name(registered_domain: str) -> str:
-    """
-    Classifies domain name risk heuristically.
-
-    Returns:
-        str: Color indicating trustworthiness of a domain.
-    """
-    domain_name, top_level_domain = registered_domain.split(".")
-
-    # Strong indicators
-    if is_url_shortener(registered_domain):
-        return RED
-
-    if contains_at_symbols(domain_name):
-        return RED
-    
-    if contains_digits(domain_name):
-        return YELLOW
-    
-    # Medium indicators
-    if any(not char.isalpha() for char in domain_name):  # checks domain for non-alphabetical letters
-        return YELLOW
-    
-    if contains_hyphens(domain_name):
-        return YELLOW
-    
-    if contains_special_chars(domain_name):
-        return YELLOW
-    
-    # Weak indicator
-    if not is_tld_common(top_level_domain):
-        return YELLOW
-
-    return GREEN
 
 
 def classify_domain_age(domain_age: dt) -> tuple:

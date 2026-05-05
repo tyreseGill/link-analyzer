@@ -1,5 +1,5 @@
 from datetime import datetime as dt, timezone as tz
-from .risk_utils import classify_domain_name, classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
+from .risk_utils import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
 from .style_utils import RED, YELLOW, GREEN, RESET
 from .whois_utils import normalize_expiration_date
 
@@ -11,7 +11,6 @@ def classify_risk(age: dt, expiration_date: dt, valid_domain_flag: bool, domain_
     Returns:
         dict: Provides risk summary for each domain attribute.
     """
-    domain_color = classify_domain_name(domain_name)
     age_num, age_unit, age_color = classify_domain_age(age)
     expiration_date_color = classify_expiration_risk(expiration_date, age)
     domain_reg_color, domain_reg_status = classify_domain_registration(valid_domain_flag)
@@ -19,9 +18,6 @@ def classify_risk(age: dt, expiration_date: dt, valid_domain_flag: bool, domain_
     color_coded_url = classify_url(url)
 
     return {
-        "domain_name": {
-            "color": domain_color
-        },
         "age": {
             "value": age_num,
             "unit": age_unit,
@@ -44,9 +40,8 @@ def classify_risk(age: dt, expiration_date: dt, valid_domain_flag: bool, domain_
     }
 
 
-def print_domain_identity(risk: dict, domain_name: str):
-    color = risk["domain_name"]["color"]
-    print(f"Domain Name: {color}{domain_name}{RESET}")
+def print_domain_identity(domain_name: str):
+    print(f"Domain Name: {domain_name}")
 
 
 def print_domain_age(risk: dict):
@@ -109,7 +104,7 @@ def display_domain_overview(url: str, query: dict):
     )
 
     print("\n================= Domain Identity Analysis =================\n")
-    print_domain_identity(risk, domain_name)
+    print_domain_identity(domain_name)
     print_domain_age(risk)
     print_expiration_info(risk, expiration_date)
     print_registrar_info(registar)
