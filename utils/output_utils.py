@@ -1,4 +1,5 @@
 from datetime import datetime as dt, timezone as tz
+from .cert_utils import get_tls_certificate, verify_hostname
 from .risk_utils import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
 from .style_utils import RED, YELLOW, GREEN, RESET
 from .whois_utils import normalize_expiration_date
@@ -82,6 +83,20 @@ def print_url_info(risk: dict):
     f"\t{GREEN}GREEN{RESET} = Expected / secure component")
 
 
+def print_certificate_info(hostname):
+    cert = get_tls_certificate(hostname)
+    cert_status = f"{GREEN}Valid{RESET}" if cert.is_valid else f"{RED}Expired{RESET}"
+    hostname_cert_match = f"{GREEN}Yes{RESET}" if verify_hostname(cert, hostname) else f"{RED}No{RESET}"
+    sans_str = ", ".join(cert.sans)
+
+    print(f"Certificate Status: {cert_status}")
+    print(f"Subject CN: {cert.common_name}")
+    print(f"Issuer: {cert.issuer_name}")
+    print(f"Expiration Date: {cert.not_after.date()}")
+    print(f"Hostname-Certificate Match: {hostname_cert_match}")
+    print(f"Subject Alternative Names: {sans_str}")
+
+
 def display_domain_overview(url: str, query: dict):
     """
     Displays summary of domain registration with security warnings.
@@ -113,3 +128,5 @@ def display_domain_overview(url: str, query: dict):
     print_url_info(risk)
     print("\n============= Web Request & Transport Security =============\n")
     print_https_support_status(risk)
+    print("\n================= TLS Certificate Analysis =================\n")
+    print_certificate_info(domain_name)
