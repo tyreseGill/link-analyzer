@@ -79,7 +79,7 @@ def print_url_info(risk: dict):
     print("\nLegend:\n" \
     f"\t{RED}RED{RESET} = High Risk Indicator\n" \
     f"\t{YELLOW}YELLOW{RESET} = Suspicious structure or keyword\n" \
-    f"\t{GREEN}GREEN{RESET} = Expected / secure component\n")
+    f"\t{GREEN}GREEN{RESET} = Expected / secure component")
 
 
 def display_domain_overview(url: str, query: dict):
@@ -109,6 +109,7 @@ def display_domain_overview(url: str, query: dict):
     print_expiration_info(risk, expiration_date)
     print_registrar_info(registar)
     print_domain_registration_status(risk)
-    print_https_support_status(risk)
     print("\n================== URL Structure Analysis ==================\n")
     print_url_info(risk)
+    print("\n============= Web Request & Transport Security =============\n")
+    print_https_support_status(risk)
