@@ -1,7 +1,7 @@
 from datetime import datetime as dt, timezone as tz
 from .span_utils import Span, make_spans, collect_spans
 from .request_utils import supports_https
-from .style_utils import GREEN, RED, YELLOW, RESET
+from .style_utils import GREEN, RED, YELLOW, RESET, highlight
 from .text_utils import find_literal, find_literals
 from .url_utils import contains_multiple_subdomains, extract_url_components, \
     fetch_subdomains, fetch_ip_addresses, fetch_digits, fetch_suspicious_keywords, \
@@ -212,7 +212,7 @@ def color_code_url(url, span) -> str:
     start = span.start
     end = span.end
     color = span.color
-    colored_segment = f"{color}{url[start:end]}{RESET}"
+    colored_segment = f"{highlight(url[start:end], color)}"
     return url[:start] + colored_segment + url[end:]
 
 

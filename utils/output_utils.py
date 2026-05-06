@@ -1,7 +1,7 @@
 from datetime import datetime as dt, timezone as tz
 from .cert_utils import get_tls_certificate, verify_hostname
 from .risk_utils import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
-from .style_utils import RED, YELLOW, GREEN, RESET
+from .style_utils import highlight, highlight_green, highlight_yellow, highlight_red
 from .whois_utils import normalize_expiration_date
 
 
@@ -49,13 +49,14 @@ def print_domain_age(risk: dict):
     color = risk["age"]["color"]
     value = risk["age"]["value"]
     unit = risk["age"]["unit"]
-    print(f"Age: {color}{value} {unit}{RESET}")
+    age = f"{value} {unit}"
+    print(f"Age: {highlight(age, color)}")
 
 
 def print_expiration_info(risk: dict, expiration_date: dt):
     color = risk["expiration_date"]["color"]
     expiration_date = expiration_date.date()
-    print(f"Expiration Date: {color}{expiration_date}{RESET}")
+    print(f"Expiration Date: {highlight(expiration_date, color)}")
 
 
 def print_registrar_info(registar: str):
@@ -65,28 +66,28 @@ def print_registrar_info(registar: str):
 def print_domain_registration_status(risk: dict):
     color = risk["domain_registration"]["color"]
     status = risk["domain_registration"]["status"]
-    print(f"Domain Registration Status: {color}{status}{RESET}")
+    print(f"Domain Registration Status: {highlight(status, color)}")
 
 
 def print_https_support_status(risk: dict):
     color = risk["https_support"]["color"]
     status = risk["https_support"]["status"]
-    print(f"HTTPS Supported: {color}{status}{RESET}")
+    print(f"HTTPS Supported: {highlight(status, color)}")
 
 
 def print_url_info(risk: dict):
     color_coded_url = risk["url_structure"]["rendered_url"]
     print(f"Analyzed URL: {color_coded_url}")
     print("\nLegend:\n" \
-    f"\t{RED}RED{RESET} = High Risk Indicator\n" \
-    f"\t{YELLOW}YELLOW{RESET} = Suspicious structure or keyword\n" \
-    f"\t{GREEN}GREEN{RESET} = Expected / secure component")
+    f"\t{highlight_red("RED")} = High Risk Indicator\n" \
+    f"\t{highlight_yellow("YELLOW")} = Suspicious structure or keyword\n" \
+    f"\t{highlight_green("GREEN")} = Expected / secure component")
 
 
 def print_certificate_info(hostname):
     cert = get_tls_certificate(hostname)
-    cert_status = f"{GREEN}Valid{RESET}" if cert.is_valid else f"{RED}Expired{RESET}"
-    hostname_cert_match = f"{GREEN}Yes{RESET}" if verify_hostname(cert, hostname) else f"{RED}No{RESET}"
+    cert_status = f"{highlight_green("Valid")}" if cert.is_valid else f"{highlight_red("Expired")}"
+    hostname_cert_match = f"{highlight_green("Yes")}" if verify_hostname(cert, hostname) else f"{highlight_red("No")}"
     sans_str = ", ".join(cert.sans)
 
     print(f"Certificate Status: {cert_status}")
