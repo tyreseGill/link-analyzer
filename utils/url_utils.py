@@ -26,6 +26,13 @@ def extract_url_components(url: str):
     return subdomain, domain, suffix
 
 
+def extract_hostname(url: str):
+    """Retrieves the hostname from a URL."""
+    sub, dom, tld = extract_url_components(url)
+    hostname = f"{sub}.{dom}.{tld}" if sub else f"{dom}.{tld}"  
+    return hostname
+
+
 def extract_suspicious_params(url: str):
     """Retrieves list of URL parameters that match phishing-related keywords."""
     url_params = [ url[start:end] for start, end in fetch_url_params(url) ]
