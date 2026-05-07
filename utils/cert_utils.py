@@ -21,7 +21,7 @@ class Certificate:
             cert['notAfter'], "%b %d %H:%M:%S %Y %Z"
         ).replace(tzinfo=tz.utc)
         self.sans = [
-            san.replace('*.', '') for _, san in cert['subjectAltName']  # removes wildcard for pattern matching
+            san for _, san in cert['subjectAltName']
         ]
 
     def __repr__(self):
@@ -66,6 +66,6 @@ def verify_hostname(cert: Certificate, url: str) -> bool:
     """
     sub, dom, tld = extract_url_components(url)
     hostnames = [f"{sub}.{dom}.{tld}", f"{dom}.{tld}"]
-    match_found = any(san in hostnames for san in cert.sans)
+    match_found = any(san.replace('*.', '') in hostnames for san in cert.sans)
 
     return match_found
