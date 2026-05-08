@@ -44,7 +44,12 @@ def get_tls_certificate(url: str) -> Certificate:
     """
     hostname = extract_hostname(url)
 
-    context = ssl.create_default_context()
+    # Early return if certificate chain is trusted
+    try:
+        context = ssl.create_default_context()
+    except ssl.SSLError:
+        return None
+     
     with context.wrap_socket(socket.socket(), server_hostname=hostname) as sock:
         sock.connect((hostname, 443))
         cert = sock.getpeercert()
