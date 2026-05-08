@@ -1,5 +1,5 @@
 from datetime import datetime as dt, timezone as tz
-from .cert_utils import get_tls_certificate, verify_hostname
+from .cert_utils import Certificate, get_tls_certificate, verify_hostname, is_self_signed
 from .risk_utils import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
 from .style_utils import highlight, highlight_green, highlight_yellow, highlight_red
 from .whois_utils import normalize_expiration_date
@@ -84,18 +84,37 @@ def print_url_info(risk: dict):
     f"\t{highlight_green("GREEN")} = Expected / secure component")
 
 
-def print_certificate_info(hostname):
-    cert = get_tls_certificate(hostname)
+def print_trusted_chain(cert: Certificate):
+    trusted_ca_chain_flag = highlight_green("Yes") if cert else highlight_red("No")
+    print(f"Trusted Chain: {trusted_ca_chain_flag}")
+
+
+def print_certificate_details(cert: Certificate, hostname: str):
+    self_signed_status = highlight_red("Yes") if is_self_signed(cert) else highlight_green("No")
+    cert_age = cert.get_age()
     cert_status = f"{highlight_green("Valid")}" if cert.is_valid else f"{highlight_red("Expired")}"
     hostname_cert_match = f"{highlight_green("Yes")}" if verify_hostname(cert, hostname) else f"{highlight_red("No")}"
     sans_str = ", ".join(cert.sans)
-
+    
+    print(f"Self-Signed: {self_signed_status}")
+    print(f"Last Renewed: {cert_age} days ago")
     print(f"Certificate Status: {cert_status}")
-    print(f"Subject CN: {cert.common_name}")
-    print(f"Issuer: {cert.issuer_name}")
+    print(f"Subject CN: {cert.subject_cn}")
+    print(f"Issuer Org: {cert.issuer_org_name}")
     print(f"Expiration Date: {cert.not_after.date()}")
     print(f"Hostname-Certificate Match: {hostname_cert_match}")
     print(f"Subject Alternative Names: {sans_str}")
+
+
+def print_certificate_info(hostname: str):
+    cert = get_tls_certificate(hostname)
+
+    print_trusted_chain(cert)
+
+    if not cert:
+        return
+    
+    print_certificate_details(cert, hostname)
 
 
 def display_domain_overview(url: str, query: dict):
