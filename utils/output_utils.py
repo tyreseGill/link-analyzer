@@ -89,21 +89,69 @@ def print_trusted_chain(cert: Certificate):
     print(f"Trusted Chain: {trusted_ca_chain_flag}")
 
 
-def print_certificate_details(cert: Certificate, hostname: str):
-    self_signed_status = highlight_red("Yes") if is_self_signed(cert) else highlight_green("No")
-    cert_age = cert.get_age()
-    cert_status = f"{highlight_green("Valid")}" if cert.is_valid else f"{highlight_red("Expired")}"
-    hostname_cert_match = f"{highlight_green("Yes")}" if verify_hostname(cert, hostname) else f"{highlight_red("No")}"
-    sans_str = ", ".join(cert.sans)
+def classify_expiration_date(days: int):
+    EXPIRY_OK_DAYS = 30
+    EXPIRY_WARN_DAYS = 7
+
+    if days > EXPIRY_OK_DAYS:
+        days_colored = highlight_green(days)
+    elif days > EXPIRY_WARN_DAYS:
+        days_colored = highlight_yellow(days)
+    else:
+        days_colored = highlight_red(days)
+
+    return days_colored
+
+
+def print_expiration_date(cert: Certificate):
+    if not cert.is_valid():
+        return
     
-    print(f"Self-Signed: {self_signed_status}")
-    print(f"Last Renewed: {cert_age} days ago")
-    print(f"Certificate Status: {cert_status}")
+    exp_date = cert.not_after.date()
+    days = cert.days_until_expiration()
+    days_colored = classify_expiration_date(days)
+            
+    print(f"Expiration Date: {exp_date} ({days_colored} days from now)")
+
+
+def print_certificate_status(cert: Certificate):
+    cert_status = (
+        highlight_green("Valid") 
+        if cert.is_valid() 
+        else highlight_red("Expired")
+    )
+    print(f"Certificate Status: {cert_status}\n")
+
+
+def print_certificate_identity(cert: Certificate):
     print(f"Subject CN: {cert.subject_cn}")
-    print(f"Issuer Org: {cert.issuer_org_name}")
-    print(f"Expiration Date: {cert.not_after.date()}")
-    print(f"Hostname-Certificate Match: {hostname_cert_match}")
-    print(f"Subject Alternative Names: {sans_str}")
+    print(f"Issuer Org: {cert.issuer_org_name}\n")
+
+
+def print_certificate_lifecycle(cert: Certificate):
+    age = cert.get_age()
+    age_colored = (
+        highlight_green(age) 
+        if age < 47 
+        else highlight_yellow(age)
+    )
+
+    print(f"Last Renewed: {age_colored} days ago")
+    print_expiration_date(cert)
+
+
+def print_certificate_relationships(cert: Certificate, hostname: str):
+    self_signed_status = highlight_red("Yes") if is_self_signed(cert) else highlight_green("No")
+    hostname_cert_match = (
+        highlight_green("Yes") 
+        if verify_hostname(cert, hostname) 
+        else highlight_red("No")
+    )
+    sans_str = ", ".join(cert.sans)
+
+    print(f"\nSelf-Signed: {self_signed_status}")
+    print(f"Hostname Match: {hostname_cert_match}")
+    print(f"SANs: {sans_str}")
 
 
 def print_certificate_info(hostname: str):
@@ -114,7 +162,10 @@ def print_certificate_info(hostname: str):
     if not cert:
         return
     
-    print_certificate_details(cert, hostname)
+    print_certificate_status(cert)
+    print_certificate_identity(cert)
+    print_certificate_lifecycle(cert)
+    print_certificate_relationships(cert, hostname)
 
 
 def display_domain_overview(url: str, query: dict):
