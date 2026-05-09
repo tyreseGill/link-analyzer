@@ -40,7 +40,7 @@ class Certificate:
 
 def get_tls_certificate(url: str) -> Certificate:
     """
-    Establishes a connection to host site and fetches certificate.
+    Establishes an HTTPS connection to host site and fetches certificate.
 
     Args:
         url: URL to obtain certificate from.
@@ -53,12 +53,12 @@ def get_tls_certificate(url: str) -> Certificate:
     # Early return if certificate chain is trusted
     try:
         context = ssl.create_default_context()
-    except ssl.SSLError:
-        return None
      
-    with context.wrap_socket(socket.socket(), server_hostname=hostname) as sock:
-        sock.connect((hostname, 443))
-        cert = sock.getpeercert()
+        with context.wrap_socket(socket.socket(), server_hostname=hostname) as sock:
+            sock.connect((hostname, 443))
+            cert = sock.getpeercert()
+    except (ssl.SSLError, OSError):
+        return None
 
     return Certificate(cert)
 
