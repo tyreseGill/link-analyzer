@@ -32,6 +32,10 @@ class Certificate:
         current_time = datetime.now(tz.utc)
         return self.not_before <= current_time <= self.not_after
     
+    def days_until_expiration(self):
+        current_time = datetime.now(tz.utc)
+        return (self.not_after - current_time).days
+    
     def get_age(self):
         current_time = datetime.now(tz.utc).date()
         age_days = (current_time - self.not_before.date()).days
