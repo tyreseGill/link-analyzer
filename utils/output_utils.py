@@ -168,7 +168,7 @@ def print_certificate_info(hostname: str):
     print_certificate_relationships(cert, hostname)
 
 
-def display_domain_overview(url: str, query: dict):
+def display_domain_overview(params: str, query: dict):
     """
     Displays summary of domain registration with security warnings.
     """
@@ -186,18 +186,24 @@ def display_domain_overview(url: str, query: dict):
         expiration_date=expiration_date,
         valid_domain_flag=valid_domain_flag,
         domain_name=domain_name,
-        url=url
+        url=params.url
     )
 
-    print("\n================= Domain Identity Analysis =================\n")
-    print_domain_identity(domain_name)
-    print_domain_age(risk)
-    print_expiration_info(risk, expiration_date)
-    print_registrar_info(registar)
-    print_domain_registration_status(risk)
-    print("\n================== URL Structure Analysis ==================\n")
-    print_url_info(risk)
-    print("\n============= Web Request & Transport Security =============\n")
-    print_https_support_status(risk)
-    print("\n================= TLS Certificate Analysis =================\n")
-    print_certificate_info(domain_name)
+    if params.domain_identity:
+        print("\n================= Domain Identity Analysis =================\n")
+        print_domain_identity(domain_name)
+        print_domain_age(risk)
+        print_expiration_info(risk, expiration_date)
+        print_registrar_info(registar)
+        print_domain_registration_status(risk)
+    if params.url_structure:
+        print("\n================== URL Structure Analysis ==================\n")
+        print_url_info(risk)
+    if params.transport_security:
+        print("\n============= Web Request & Transport Security =============\n")
+        print_https_support_status(risk)
+    if params.tls_cert:
+        print("\n================= TLS Certificate Analysis =================\n")
+        print_certificate_info(domain_name)
+    
+    print()
