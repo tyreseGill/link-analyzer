@@ -168,6 +168,30 @@ def print_certificate_info(hostname: str):
     print_certificate_relationships(cert, hostname)
 
 
+def print_domain_identity_analysis(risk: dict, domain_name: str, exp_date: dt, registar: str):
+    print("\n================= Domain Identity Analysis =================\n")
+    print_domain_identity(domain_name)
+    print_domain_age(risk)
+    print_expiration_info(risk, exp_date)
+    print_registrar_info(registar)
+    print_domain_registration_status(risk)
+
+
+def print_url_struct_analysis(risk: dict):
+    print("\n================== URL Structure Analysis ==================\n")
+    print_url_info(risk)
+
+
+def print_transport_security_analysis(risk: dict):
+    print("\n============= Web Request & Transport Security =============\n")
+    print_https_support_status(risk)
+
+
+def print_cert_analysis(domain_name: str):
+    print("\n================= TLS Certificate Analysis =================\n")
+    print_certificate_info(domain_name)
+
+
 def display_domain_overview(params: str, query: dict):
     """
     Displays summary of domain registration with security warnings.
@@ -177,33 +201,25 @@ def display_domain_overview(params: str, query: dict):
 
     valid_domain_flag = is_domain_registration_valid(query)
     creation_date = normalize_expiration_date(query.creation_date)
-    expiration_date = normalize_expiration_date(query.expiration_date)
+    exp_date = normalize_expiration_date(query.expiration_date)
 
     domain_age = dt.now(tz.utc) - creation_date
 
     risk = classify_risk(
         age=domain_age,
-        expiration_date=expiration_date,
+        expiration_date=exp_date,
         valid_domain_flag=valid_domain_flag,
         domain_name=domain_name,
         url=params.url
     )
 
     if params.domain_identity:
-        print("\n================= Domain Identity Analysis =================\n")
-        print_domain_identity(domain_name)
-        print_domain_age(risk)
-        print_expiration_info(risk, expiration_date)
-        print_registrar_info(registar)
-        print_domain_registration_status(risk)
+        print_domain_identity_analysis(risk, domain_name, exp_date, registar)
     if params.url_structure:
-        print("\n================== URL Structure Analysis ==================\n")
-        print_url_info(risk)
+        print_url_struct_analysis(risk)
     if params.transport_security:
-        print("\n============= Web Request & Transport Security =============\n")
-        print_https_support_status(risk)
+        print_transport_security_analysis(risk)
     if params.tls_cert:
-        print("\n================= TLS Certificate Analysis =================\n")
-        print_certificate_info(domain_name)
+        print_cert_analysis(domain_name)
     
     print()
