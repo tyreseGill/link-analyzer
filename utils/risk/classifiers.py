@@ -1,14 +1,10 @@
 from datetime import datetime as dt, timezone as tz
-from .span_utils import Span, make_spans, collect_spans
-from .request_utils import supports_https
-from .style_utils import GREEN, RED, YELLOW, RESET, highlight
-from .text_utils import find_literal, find_literals
-from .url_utils import contains_multiple_subdomains, extract_url_components, \
-    fetch_subdomains, fetch_ip_addresses, fetch_digits, fetch_suspicious_keywords, \
-    fetch_hyphens, fetch_at_symbols, fetch_special_chars, \
-    is_url_shortener, contains_suspicious_keywords, contains_scheme, \
-    fetch_schemes, fetch_uncommon_tlds, extract_suspicious_params
-from .whois_utils import normalize_expiration_date
+from utils.presentation.span import Span, make_spans, collect_spans
+from utils.network.requests import supports_https
+from utils.presentation.style import GREEN, RED, YELLOW, RESET, highlight
+from utils.text_utils import find_literal, find_literals
+from utils.url.parsing import *
+from utils.network.whois import normalize_expiration_date
 
 
 DAYS_IN_YEAR = 365

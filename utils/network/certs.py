@@ -1,4 +1,4 @@
-from .url_utils import extract_hostname, extract_url_components
+from utils.url.parsing import extract_hostname, extract_url_components
 from datetime import datetime, timezone as tz
 import ssl
 import socket

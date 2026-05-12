@@ -1,9 +1,9 @@
 from datetime import datetime as dt, timezone as tz
-from .cert_utils import Certificate, get_tls_certificate, verify_hostname, is_self_signed
-from .risk_utils import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
-from .style_utils import highlight, highlight_green, highlight_yellow, highlight_red
-from .url_utils import extract_hostname
-from .whois_utils import normalize_expiration_date, query_url
+from utils.network.certs import Certificate, get_tls_certificate, verify_hostname, is_self_signed
+from utils.risk.classifiers import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
+from utils.presentation.style import highlight, highlight_green, highlight_yellow, highlight_red
+from utils.url.parsing import extract_hostname
+from utils.network.whois import normalize_expiration_date, query_url
 import argparse
 
 
