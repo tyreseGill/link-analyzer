@@ -1,4 +1,4 @@
-from utils import query_url, display_domain_overview 
+from utils import display_domain_overview 
 import argparse
 import sys
 
@@ -108,17 +108,8 @@ def main():
         return
     
     params = resolve_analysis_flags(params)
-    query = query_url(url)
 
-    # Indicates whether a URL exists or not
-    dne_flag = all(attr is None for attr in query.values())
-
-    # Early return if URL doesn't exist
-    if dne_flag:
-        print(f'No matches were found for "{url}". Make sure you have a stable internet connection and that any VPNs are off before you try again.')
-        return
-
-    display_domain_overview(params, query)
+    display_domain_overview(params)
 
 
 main()

@@ -2,43 +2,61 @@ from datetime import datetime as dt, timezone as tz
 from .cert_utils import Certificate, get_tls_certificate, verify_hostname, is_self_signed
 from .risk_utils import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
 from .style_utils import highlight, highlight_green, highlight_yellow, highlight_red
-from .whois_utils import normalize_expiration_date
+from .url_utils import extract_hostname
+from .whois_utils import normalize_expiration_date, query_url
+import argparse
 
 
-def classify_risk(age: dt, expiration_date: dt, valid_domain_flag: bool, domain_name: str, url: str) -> dict:
+def classify_risk(params: argparse.Namespace, query: dict = None) -> dict:
     """
     Classifies severity of individual domain attributes.
 
     Returns:
         dict: Provides risk summary for each domain attribute.
     """
-    age_num, age_unit, age_color = classify_domain_age(age)
-    expiration_date_color = classify_expiration_risk(expiration_date, age)
-    domain_reg_color, domain_reg_status = classify_domain_registration(valid_domain_flag)
-    https_supp_color, https_supp_status = classify_https_status(domain_name)
-    color_coded_url = classify_url(url)
+    domain_name = extract_hostname(params.url)
 
-    return {
-        "age": {
+    result = {}
+
+    if params.domain_identity:
+        valid_domain_flag = is_domain_registration_valid(query)
+        creation_date = normalize_expiration_date(query.creation_date)
+        exp_date = normalize_expiration_date(query.expiration_date)
+        age = dt.now(tz.utc) - creation_date
+
+        age_num, age_unit, age_color = classify_domain_age(age)
+        expiration_date_color = classify_expiration_risk(exp_date, age)
+        domain_reg_color, domain_reg_status = classify_domain_registration(valid_domain_flag)
+
+        result["age"] = {
             "value": age_num,
             "unit": age_unit,
             "color": age_color
-        },
-        "expiration_date": {
+        }
+        result["exp_date"] = {
             "color": expiration_date_color
-        },
-        "domain_registration": {
+        }
+        result["domain_reg"] = {
             "color": domain_reg_color,
             "status": domain_reg_status
-        },
-        "https_support": {
+        }
+        
+    if params.transport_security:
+        https_supp_color, https_supp_status = classify_https_status(domain_name)
+
+        result["https_support"] = {
             "color": https_supp_color,
             "status": https_supp_status
-        },
-        "url_structure": {
-            "rendered_url": color_coded_url,
         }
-    }
+        
+    if params.url_structure:
+        color_coded_url = classify_url(params.url)
+
+        result["url_structure"] = {
+            "rendered_url": color_coded_url
+        }
+
+    return result
 
 
 def print_domain_identity(domain_name: str):
@@ -54,7 +72,7 @@ def print_domain_age(risk: dict):
 
 
 def print_expiration_info(risk: dict, expiration_date: dt):
-    color = risk["expiration_date"]["color"]
+    color = risk["exp_date"]["color"]
     expiration_date = expiration_date.date()
     print(f"Expiration Date: {highlight(expiration_date, color)}")
 
@@ -64,8 +82,8 @@ def print_registrar_info(registar: str):
 
 
 def print_domain_registration_status(risk: dict):
-    color = risk["domain_registration"]["color"]
-    status = risk["domain_registration"]["status"]
+    color = risk["domain_reg"]["color"]
+    status = risk["domain_reg"]["status"]
     print(f"Domain Registration Status: {highlight(status, color)}")
 
 
@@ -168,7 +186,11 @@ def print_certificate_info(hostname: str):
     print_certificate_relationships(cert, hostname)
 
 
-def print_domain_identity_analysis(risk: dict, domain_name: str, exp_date: dt, registar: str):
+def print_domain_identity_analysis(risk: dict, query: dict):
+    domain_name = query.domain_name.lower()
+    exp_date = normalize_expiration_date(query.expiration_date)
+    registar = query.registrar
+
     print("\n================= Domain Identity Analysis =================\n")
     print_domain_identity(domain_name)
     print_domain_age(risk)
@@ -192,34 +214,26 @@ def print_cert_analysis(domain_name: str):
     print_certificate_info(domain_name)
 
 
-def display_domain_overview(params: str, query: dict):
+def display_domain_overview(params: str):
     """
     Displays summary of domain registration with security warnings.
     """
-    domain_name = query.domain_name.lower()
-    registar = query.registrar
+    query = query_url(params.url) if params.domain_identity else None
+    risk = classify_risk(params, query)
 
-    valid_domain_flag = is_domain_registration_valid(query)
-    creation_date = normalize_expiration_date(query.creation_date)
-    exp_date = normalize_expiration_date(query.expiration_date)
-
-    domain_age = dt.now(tz.utc) - creation_date
-
-    risk = classify_risk(
-        age=domain_age,
-        expiration_date=exp_date,
-        valid_domain_flag=valid_domain_flag,
-        domain_name=domain_name,
-        url=params.url
-    )
-
+    # Early return ifor non-existent URLs
+    if query and all(attr is None for attr in query.values()):
+        print(f'No matches were found for "{params.url}". Make sure you have a stable internet connection and that any VPNs are off before you try again.')
+        return
+    
     if params.domain_identity:
-        print_domain_identity_analysis(risk, domain_name, exp_date, registar)
+        print_domain_identity_analysis(risk, query)
     if params.url_structure:
         print_url_struct_analysis(risk)
     if params.transport_security:
         print_transport_security_analysis(risk)
     if params.tls_cert:
+        domain_name = extract_hostname(params.url)
         print_cert_analysis(domain_name)
     
     print()
