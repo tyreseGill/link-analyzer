@@ -7,7 +7,7 @@ from utils.network.whois import normalize_expiration_date, query_url
 import argparse
 
 
-def classify_risk(params: argparse.Namespace, query: dict = None) -> dict:
+def classify_risk(params: argparse.Namespace, query: dict | None = None) -> dict:
     """
     Classifies severity of individual domain attributes.
 
@@ -19,45 +19,65 @@ def classify_risk(params: argparse.Namespace, query: dict = None) -> dict:
     result = {}
 
     if params.domain_identity:
-        valid_domain_flag = is_domain_registration_valid(query)
-        creation_date = normalize_expiration_date(query.creation_date)
-        exp_date = normalize_expiration_date(query.expiration_date)
-        age = dt.now(tz.utc) - creation_date
+        result |= classify_domain_identity(query)
 
-        age_num, age_unit, age_color = classify_domain_age(age)
-        expiration_date_color = classify_expiration_risk(exp_date, age)
-        domain_reg_color, domain_reg_status = classify_domain_registration(valid_domain_flag)
-
-        result["age"] = {
-            "value": age_num,
-            "unit": age_unit,
-            "color": age_color
-        }
-        result["exp_date"] = {
-            "color": expiration_date_color
-        }
-        result["domain_reg"] = {
-            "color": domain_reg_color,
-            "status": domain_reg_status
-        }
-        
-    if params.transport_security:
-        https_supp_color, https_supp_status = classify_https_status(domain_name)
-
-        result["https_support"] = {
-            "color": https_supp_color,
-            "status": https_supp_status
-        }
-        
     if params.url_structure:
-        color_coded_url = classify_url(params.url)
+        url = params.url
+        result |= classify_url_structure(url)
 
-        result["url_structure"] = {
-            "rendered_url": color_coded_url
-        }
+    if params.transport_security:
+        result |= classify_transport_security(domain_name)
+        
+    if params.tls_cert:
+        pass
 
     return result
 
+
+def classify_domain_identity(query):
+    valid_domain_flag = is_domain_registration_valid(query)
+    creation_date = normalize_expiration_date(query.creation_date)
+    exp_date = normalize_expiration_date(query.expiration_date)
+    age = dt.now(tz.utc) - creation_date
+
+    age_num, age_unit, age_color = classify_domain_age(age)
+    expiration_date_color = classify_expiration_risk(exp_date, age)
+    domain_reg_color, domain_reg_status = classify_domain_registration(valid_domain_flag)
+
+    return {
+        "age": {
+            "value": age_num,
+            "unit": age_unit,
+            "color": age_color
+        },
+        "exp_date": {
+            "color": expiration_date_color
+        },
+        "domain_reg": {
+            "color": domain_reg_color,
+            "status": domain_reg_status
+        }
+    }
+
+
+def classify_url_structure(url: str):
+    color_coded_url = classify_url(url)
+    return {
+        "url_structure": {
+            "rendered_url": color_coded_url
+        }
+    }
+
+
+def classify_transport_security(domain_name: str):
+    https_supp_color, https_supp_status = classify_https_status(domain_name)
+    return {
+        "https_support": {
+            "color": https_supp_color,
+            "status": https_supp_status
+        }
+    }
+        
 
 def print_domain_identity(domain_name: str):
     print(f"Domain Name: {domain_name}")
@@ -220,18 +240,23 @@ def display_domain_overview(params: str):
     """
     query = query_url(params.url) if params.domain_identity else None
     risk = classify_risk(params, query)
-
-    # Early return ifor non-existent URLs
-    if query and all(attr is None for attr in query.values()):
-        print(f'No matches were found for "{params.url}". Make sure you have a stable internet connection and that any VPNs are off before you try again.')
-        return
     
     if params.domain_identity:
+        
+        # Early return for non-existent URLs
+        if all(attr is None for attr in query.values()):
+            print(f'No matches were found for "{params.url}".\n'
+                'Make sure you have a stable internet connection and that any VPNs are off before you try again.')
+            return
+        
         print_domain_identity_analysis(risk, query)
+
     if params.url_structure:
         print_url_struct_analysis(risk)
+
     if params.transport_security:
         print_transport_security_analysis(risk)
+
     if params.tls_cert:
         domain_name = extract_hostname(params.url)
         print_cert_analysis(domain_name)
