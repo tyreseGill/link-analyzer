@@ -50,6 +50,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--offline",
                         action="store_true",
                         help="Disables all analyses requiring an internet connection.")
+    parser.add_argument("--html",
+                        action="store_true",
+                        help="Outputs details regarding the domain's HTML elements.")
+    parser.add_argument("--preview",
+                        action="store_true",
+                        help="Generates a static HTML page to showcase what the page looks like.")
 
     # Extracts the data associated from the aforementioned arguments
     params = parser.parse_args()
@@ -72,7 +78,8 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.domain_identity,
         params.url_structure,
         params.transport_security,
-        params.tls_cert
+        params.tls_cert,
+        params.html
     ])
 
     # Performs all analyses
@@ -81,6 +88,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.url_structure = True
         params.transport_security = True
         params.tls_cert = True
+        params.html = True
     
     # Performs analysis with offline-capabilities
     elif params.offline:
@@ -88,6 +96,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.url_structure = True
         params.transport_security = False
         params.tls_cert = False
+        params.html = False
     
     # Performs domain analysis by default if no specific analysis is specified
     elif not analysis_requested:
