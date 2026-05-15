@@ -29,7 +29,12 @@ def extract_url_components(url: str):
 def extract_hostname(url: str):
     """Retrieves the hostname from a URL."""
     sub, dom, tld = extract_url_components(url)
-    hostname = f"{sub}.{dom}.{tld}" if sub else f"{dom}.{tld}"  
+    hostname = f"{sub}.{dom}.{tld}" if sub else f"{dom}.{tld}"
+
+    # Valid hostnames must consist of at least a domain and top-level domain
+    if hostname.startswith(".") or hostname.endswith("."):
+        return None
+    
     return hostname
 
 
