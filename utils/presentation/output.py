@@ -2,8 +2,10 @@ from datetime import datetime as dt, timezone as tz
 from utils.network.certs import Certificate, get_tls_certificate, verify_hostname, is_self_signed
 from utils.risk.classifiers import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
 from utils.presentation.style import highlight, highlight_green, highlight_yellow, highlight_red
-from utils.url.parsing import extract_hostname
-from utils.network.whois import normalize_expiration_date, query_url
+from utils.url.parsing import extract_hostname, contains_scheme
+from utils.network.html_analysis import analyze_html, analyze_external_domains
+from utils.network.whois import normalize_expiration_date, query_url, query_exists
+from utils.network.requests import  fetch_html_soup
 import argparse
 
 
@@ -29,6 +31,9 @@ def classify_risk(params: argparse.Namespace, query: dict | None = None) -> dict
         result |= classify_transport_security(domain_name)
         
     if params.tls_cert:
+        pass
+
+    if params.html:
         pass
 
     return result
@@ -234,6 +239,60 @@ def print_cert_analysis(domain_name: str):
     print_certificate_info(domain_name)
 
 
+def print_html_analysis(url: str):
+    print("\n=============== HTML Content & Link Analysis ===============\n")
+    
+    if not contains_scheme(url):
+        url = "https://" + url
+
+    soup = fetch_html_soup(url)
+
+    if soup:
+        print(f"HTML Retrieved: {highlight_green("Yes")}")
+    else:
+        print(f"HTML Retrieved: {highlight_red("No")}")
+        return
+
+    result = analyze_html(url, soup)
+
+    # Scripts
+    num_scripts_detected = result["script_count"]
+    num_scripts_detected = (
+        highlight_green(num_scripts_detected)
+        if num_scripts_detected == 0 
+        else highlight_yellow(num_scripts_detected)
+    )
+    print(f"Scripts Detected: {num_scripts_detected}")
+
+    # External domains
+    external_domains = result["external_domains"]
+    num_external_domains = len(external_domains)
+    num_external_domains = (
+        highlight_green(num_external_domains) 
+        if num_external_domains == 0 
+        else highlight_yellow(num_external_domains)
+    )
+    print(f"External Links: {num_external_domains}")
+
+    if external_domains:
+        print(f"External Domains: {', '.join(external_domains)}")
+
+    # Mismatch
+    num_mismatches = result["mismatch_count"]
+    num_mismatches = (
+        highlight_green(num_mismatches) 
+        if num_mismatches == 0 
+        else highlight_red(num_mismatches)
+    )
+    print(f"Mismatched URLs: {num_mismatches}")
+
+    # Suspicious domains
+    sus_links = analyze_external_domains(external_domains)
+    if sus_links:
+        print(f"Suspicious External Links: {', '.join(sus_links)}")
+
+
+
 def display_domain_overview(params: str):
     """
     Displays summary of domain registration with security warnings.
@@ -244,9 +303,7 @@ def display_domain_overview(params: str):
     if params.domain_identity:
         
         # Early return for non-existent URLs
-        if all(attr is None for attr in query.values()):
-            print(f'No matches were found for "{params.url}".\n'
-                'Make sure you have a stable internet connection and that any VPNs are off before you try again.')
+        if not query_exists(params.url, query):
             return
         
         print_domain_identity_analysis(risk, query)
@@ -260,5 +317,8 @@ def display_domain_overview(params: str):
     if params.tls_cert:
         domain_name = extract_hostname(params.url)
         print_cert_analysis(domain_name)
+
+    if params.html:
+        print_html_analysis(params.url)
     
     print()
