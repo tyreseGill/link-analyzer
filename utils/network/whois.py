@@ -1,7 +1,9 @@
 from datetime import datetime as dt, timezone as tz
+from functools import lru_cache
 import whois
 
 
+@lru_cache(maxsize=100)
 def query_url(url: str) -> dict:
     """
     Performs a WHOIS lookup on the provided URL.
@@ -9,7 +11,10 @@ def query_url(url: str) -> dict:
     Returns:
         dict: Collection of details associated with the URL.
     """
-    query = whois.whois(url)
+    try:
+        query = whois.whois(url)
+    except Exception:
+        return None
     return query
 
 
