@@ -1,87 +1,11 @@
-from datetime import datetime as dt, timezone as tz
+from datetime import datetime as dt
 from utils.network.certs import Certificate, get_tls_certificate, verify_hostname, is_self_signed
-from utils.risk.classifiers import classify_domain_age, classify_expiration_risk, classify_domain_registration, classify_https_status, classify_url, is_domain_registration_valid
+from utils.risk.classifiers import classify_risk, classify_expiration_date
 from utils.presentation.style import highlight, highlight_green, highlight_yellow, highlight_red
 from utils.url.parsing import extract_hostname, contains_scheme
 from utils.network.html_analysis import analyze_html, analyze_external_domains
 from utils.network.whois import normalize_expiration_date, query_url, query_exists
 from utils.network.requests import  fetch_html_soup
-import argparse
-
-
-def classify_risk(params: argparse.Namespace, query: dict | None = None) -> dict:
-    """
-    Classifies severity of individual domain attributes.
-
-    Returns:
-        dict: Provides risk summary for each domain attribute.
-    """
-    domain_name = extract_hostname(params.url)
-
-    result = {}
-
-    if params.domain_identity:
-        result |= classify_domain_identity(query)
-
-    if params.url_structure:
-        url = params.url
-        result |= classify_url_structure(url)
-
-    if params.transport_security:
-        result |= classify_transport_security(domain_name)
-        
-    if params.tls_cert:
-        pass
-
-    if params.html:
-        pass
-
-    return result
-
-
-def classify_domain_identity(query):
-    valid_domain_flag = is_domain_registration_valid(query)
-    creation_date = normalize_expiration_date(query.creation_date)
-    exp_date = normalize_expiration_date(query.expiration_date)
-    age = dt.now(tz.utc) - creation_date
-
-    age_num, age_unit, age_color = classify_domain_age(age)
-    expiration_date_color = classify_expiration_risk(exp_date, age)
-    domain_reg_color, domain_reg_status = classify_domain_registration(valid_domain_flag)
-
-    return {
-        "age": {
-            "value": age_num,
-            "unit": age_unit,
-            "color": age_color
-        },
-        "exp_date": {
-            "color": expiration_date_color
-        },
-        "domain_reg": {
-            "color": domain_reg_color,
-            "status": domain_reg_status
-        }
-    }
-
-
-def classify_url_structure(url: str):
-    color_coded_url = classify_url(url)
-    return {
-        "url_structure": {
-            "rendered_url": color_coded_url
-        }
-    }
-
-
-def classify_transport_security(domain_name: str):
-    https_supp_color, https_supp_status = classify_https_status(domain_name)
-    return {
-        "https_support": {
-            "color": https_supp_color,
-            "status": https_supp_status
-        }
-    }
         
 
 def print_domain_identity(domain_name: str):
@@ -130,20 +54,6 @@ def print_url_info(risk: dict):
 def print_trusted_chain(cert: Certificate):
     trusted_ca_chain_flag = highlight_green("Yes") if cert else highlight_red("No")
     print(f"Trusted Chain: {trusted_ca_chain_flag}")
-
-
-def classify_expiration_date(days: int):
-    EXPIRY_OK_DAYS = 30
-    EXPIRY_WARN_DAYS = 7
-
-    if days > EXPIRY_OK_DAYS:
-        days_colored = highlight_green(days)
-    elif days > EXPIRY_WARN_DAYS:
-        days_colored = highlight_yellow(days)
-    else:
-        days_colored = highlight_red(days)
-
-    return days_colored
 
 
 def print_expiration_date(cert: Certificate):
