@@ -208,14 +208,14 @@ def display_domain_overview(params: str):
     Displays summary of domain registration with security warnings.
     """
     query = query_url(params.url) if params.domain_identity else None
+
+    # Early return for non-existent URLs
+    if not query_exists(params.url, query):
+        return
+    
     risk = classify_risk(params, query)
     
     if params.domain_identity:
-        
-        # Early return for non-existent URLs
-        if not query_exists(params.url, query):
-            return
-        
         print_domain_identity_analysis(risk, query)
 
     if params.url_structure:
