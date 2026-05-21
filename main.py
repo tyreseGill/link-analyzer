@@ -44,15 +44,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tls_cert",
                         action="store_true",
                         help="Outputs details regarding the domain's TLS certificate.")
+    parser.add_argument("--html",
+                        action="store_true",
+                        help="Outputs details regarding the domain's HTML elements.")
     parser.add_argument("--full",
                         action="store_true",
                         help="Enables all analyses.")
     parser.add_argument("--offline",
                         action="store_true",
                         help="Disables all analyses requiring an internet connection.")
-    parser.add_argument("--html",
+    parser.add_argument("--exclude",
                         action="store_true",
-                        help="Outputs details regarding the domain's HTML elements.")
+                        help="Enables all analyses minus those specified.")
     parser.add_argument("--preview",
                         action="store_true",
                         help="Generates a static HTML page to showcase what the page looks like.")
@@ -97,6 +100,14 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.transport_security = False
         params.tls_cert = False
         params.html = False
+    
+    # Performs all analyses with the exception of any specified analyses
+    elif params.exclude:
+        params.domain_identity = not params.domain_identity
+        params.url_structure = not params.url_structure
+        params.transport_security = not params.transport_security
+        params.tls_cert = not params.tls_cert
+        params.html = not params.html
     
     # Performs domain analysis by default if no specific analysis is specified
     elif not analysis_requested:
