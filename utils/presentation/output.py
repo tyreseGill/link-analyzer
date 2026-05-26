@@ -3,9 +3,9 @@ from utils.network.certs import Certificate, get_tls_certificate, verify_hostnam
 from utils.risk.classifiers import classify_risk, classify_expiration_date
 from utils.presentation.style import highlight, highlight_green, highlight_yellow, highlight_red
 from utils.url.parsing import extract_hostname, contains_scheme
-from utils.network.html_analysis import analyze_html, analyze_external_domains, analyze_css
+from utils.network.html_analysis import analyze_html, analyze_external_domains, analyze_css, fetch_external_css
 from utils.network.whois import normalize_expiration_date, query_url, query_exists
-from utils.network.requests import  fetch_page_resource_soup
+from utils.network.requests import  fetch_page_resource_soup, fetch_page_resource
         
 
 def print_domain_identity(domain_name: str):
@@ -201,7 +201,9 @@ def print_html_analysis(url: str):
     if sus_links:
         print(f"Suspicious External Links: {', '.join(sus_links)}")
 
-    result = analyze_css(url, soup)
+    html = fetch_page_resource(url)
+    external_links = fetch_external_css(soup)
+    result = analyze_css(html, external_links)
 
     # CSS check for invisible elements and overlays
     hidden_elems_flag = result["hidden_elements_present"]
@@ -216,7 +218,7 @@ def print_html_analysis(url: str):
         if overlays_flag
         else highlight_green("No")
     )
-    print(f"Hidden Elements Detected: {invisible_elems_detected}")
+    print(f"Suspicious Hidden Elements Detected: {invisible_elems_detected}")
     print(f"Overlays Detected: {overlays_detected}")
 
 

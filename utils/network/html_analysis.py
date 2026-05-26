@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup, element
 from utils.presentation.style import RED, YELLOW
-from utils.network.html_parser import fetch_links, fetch_js, fetch_external_css
+from utils.network.html_parser import fetch_links, fetch_js
 from utils.network.whois import query_exists, query_url
 from utils.risk.classifiers import classify_url_structure, classify_domain_identity
 from utils.url.parsing import extract_hostname, contains_ip_address
@@ -203,22 +203,20 @@ def contains_overlay(txt: str) -> bool:
     return bool(has_abs_pos and has_high_z)
 
 
-def analyze_css(url: str, soup: BeautifulSoup) -> dict:
+def analyze_css(html: str, stylesheet_links: list[str]) -> dict:
     """
     Parses HTML and CSS texts for the presence of CSS that can be used to 
     make invisible elements and overlays.
 
     Args:
-        url: The URL to be parsed.
-        soup: Parsed HTML to be inspected.
+        html: The text to be parsed.
+        stylesheet_links: Links to external CSS files to be inspected.
 
     Returns:
         dict: Collection of key-value pairs representing CSS characteristics.
     """
     result = {}
     parseable_txt = []
-    html = fetch_page_resource(url)
-    stylesheet_links = fetch_external_css(soup)
 
     # Adds string of HTML code to be parsed for internal & inline CSS
     if html:
@@ -228,7 +226,7 @@ def analyze_css(url: str, soup: BeautifulSoup) -> dict:
     for link in stylesheet_links:
         pg_resource = fetch_page_resource(link)
 
-        # Adds text to list if fetch )was successful
+        # Adds text to list if fetch was successful
         if pg_resource:
             parseable_txt.append(pg_resource)
     
@@ -244,7 +242,7 @@ def analyze_css(url: str, soup: BeautifulSoup) -> dict:
     for txt in parseable_txt:
         if hidden_elements_found and overlay_found:
             break
-        if contains_hidden_elements(txt):
+        if contains_sus_hidden_elem(txt):
             hidden_elements_found = True
         if contains_overlay(txt):
             overlay_found = True
