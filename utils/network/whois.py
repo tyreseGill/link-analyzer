@@ -46,7 +46,7 @@ def query_exists(url: str, query: dict) -> bool:
     Returns:
         bool: False, if all query attributes are null. Otherwise, True.
     """
-    if all(attr is None for attr in query.values()):
+    if not query or not isinstance(query, dict) or all(attr is None for attr in query.values()):
         print(f'No matches were found for "{url}".\n'
             'Make sure you have a stable internet connection and that any VPNs are off before you try again.')
         return False
