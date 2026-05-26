@@ -18,26 +18,30 @@ def supports_https(domain_name: str) -> bool:
         return False
 
 
-def fetch_html(url: str):
+def fetch_page_resource(url: str) -> str | None:
+    """
+    Attempts to obtain a string copy of HTML/CSS code from the given URL.
+
+    Args:
+        url: The URL to retrieve HTML/CSS text from.
+    
+    Returns:
+        str: A string of HTML/CSS text. Otherwise, none.
+    """
     try:
-        html = requests.get(url, timeout=5, headers={"User-Agent": "PreviewBot/1.0"})
-        return html.text
+        resource = requests.get(url, timeout=5, headers={"User-Agent": "PreviewBot/1.0"})
+        return resource.text
     except requests.RequestException:
         return None
 
 
-def fetch_html_soup(url: str):
+def fetch_page_resource_soup(url: str) -> BeautifulSoup | None:
+    """
+    Attempts to obtain BeautifulSoup object from 
+    """
     try:
-        html = fetch_html(url)
+        html = fetch_page_resource(url)
         soup = BeautifulSoup(html, 'html.parser')
         return soup
     except requests.RequestException:
         return None
-
-
-def fetch_css(css_links: str):
-    # for link in css_links:
-    url = css_links.get('href')
-    css = requests.get(url, timeout=5, headers={"User-Agent": "PreviewBot/1.0"})
-
-    return css.text
