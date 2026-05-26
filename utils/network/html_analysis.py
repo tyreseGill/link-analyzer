@@ -1,9 +1,11 @@
 from bs4 import BeautifulSoup, element
 from utils.presentation.style import RED, YELLOW
-from utils.network.html import fetch_links, fetch_js
+from utils.network.html import fetch_links, fetch_js, fetch_external_css
 from utils.network.whois import query_exists, query_url
 from utils.risk.classifiers import classify_url_structure, classify_domain_identity
 from utils.url.parsing import extract_hostname, contains_ip_address
+from utils.network.requests import fetch_page_resource
+import re
 
 
 def remove_js_from_html(soup: BeautifulSoup) -> str:
@@ -85,15 +87,23 @@ def href_text_mismatch(anchor: element.Tag) -> bool:
     return False
 
 
-def analyze_html(url: str, soup: BeautifulSoup):
-    result = {}
+def analyze_html(url: str, soup: BeautifulSoup) -> dict:
+    """
+    Parses HTML for the presence of JS scripts, links to external domains, 
+    and any misleading hyperlinks.
 
-    if not soup:
-        return None
+    Args:
+        url: The URL to be parsed.
+        soup: Parsed HTML to be inspected.
+
+    Returns:
+        dict: Collection of key-value pairs representing HTML characteristics.
+    """
+    result = {}
 
     # Scripts
     js_scripts = fetch_js(soup)
-    result["script_count"] = len(js_scripts)
+    result["script_count"] = len(js_scripts) if js_scripts else 0
 
     # External domains
     external_domains = fetch_links_to_external_domains(url, soup)
@@ -148,3 +158,98 @@ def analyze_external_domains(external_domains: list[str]):
 
     return list(sus_links)
 
+
+def contains_hidden_elements(txt: str) -> bool:
+    """
+    Checks if HTML/CSS contains invisible elements.
+
+    Args:
+        txt: The text to be inspected.
+
+    Return:
+        bool: True, if a text contains "opacity: 0", "display: none", or "visibility: hidden".
+        Otherwise, False.
+    """
+    patterns = [
+        r"opacity:\s*0\b",
+        r"display:\s*none\b",
+        r"visibility:\s*hidden\b",
+    ]
+
+    # return True if match else False
+    return any(re.search(pattern, txt) for pattern in patterns)
+
+
+def contains_sus_hidden_elem(txt: str):
+    hidden = contains_hidden_elements(txt)
+    has_abs_pos = re.search(r"position:\s*(absolute|fixed)", txt)
+    large_area = re.search(r"(width|height):\s*(100%|100vh|100vw)", txt)
+    return hidden and (has_abs_pos or large_area)
+
+
+def contains_overlay(txt: str) -> bool:
+    """
+    Checks if HTML/CSS text contains overlays.
+
+    Args:
+        txt: The text to be inspected.
+    
+    Returns:
+        bool: True, if a text contains both "position: absolute" and "z-index: 99".
+        Otherwise, False.
+    """
+    has_abs_pos = re.search(r"position:\s*(absolute|fixed)", txt)
+    has_high_z = re.search(r"z-index:\s*(\d{2,})", txt)
+    return bool(has_abs_pos and has_high_z)
+
+
+def analyze_css(url: str, soup: BeautifulSoup) -> dict:
+    """
+    Parses HTML and CSS texts for the presence of CSS that can be used to 
+    make invisible elements and overlays.
+
+    Args:
+        url: The URL to be parsed.
+        soup: Parsed HTML to be inspected.
+
+    Returns:
+        dict: Collection of key-value pairs representing CSS characteristics.
+    """
+    result = {}
+    parseable_txt = []
+    html = fetch_page_resource(url)
+    stylesheet_links = fetch_external_css(soup)
+
+    # Adds string of HTML code to be parsed for internal & inline CSS
+    if html:
+        parseable_txt.append(html)
+
+    # Adds strings of external CSS code to be parsed 
+    for link in stylesheet_links:
+        pg_resource = fetch_page_resource(link)
+
+        # Adds text to list if fetch )was successful
+        if pg_resource:
+            parseable_txt.append(pg_resource)
+    
+    hidden_elements_found = False
+    overlay_found = False
+
+    # Early return
+    if len(parseable_txt) == 0:
+        result["hidden_elements_present"] = hidden_elements_found
+        result["overlays_present"] = overlay_found
+        return result
+
+    for txt in parseable_txt:
+        if hidden_elements_found and overlay_found:
+            break
+        if contains_hidden_elements(txt):
+            hidden_elements_found = True
+        if contains_overlay(txt):
+            overlay_found = True
+
+    result["hidden_elements_present"] = hidden_elements_found
+    result["overlays_present"] = overlay_found
+    
+    return result

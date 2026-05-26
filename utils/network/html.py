@@ -1,24 +1,31 @@
 from bs4 import BeautifulSoup
 
 
-def fetch_stylesheets(soup: BeautifulSoup):
-    links = soup.find_all('link')
-    stylesheets = []
-    for link in links:
-        print(link.get('rel'))
-        if link.get('rel') == ['stylesheet']:
-            stylesheets.append(link)
-    print(f"{stylesheets=}")
+def fetch_external_css(soup: BeautifulSoup) -> list:
+    """
+    Retrieves the links to all CSS files referenced and used to style a given URL.
 
-    return stylesheets
+    Args:
+        soup: Parsed HTML to be inspected.
+
+    Returns:
+        list: List of links to CSS files.
+    """
+    stylesheet_tags = soup.find_all('link', rel="stylesheet")
+    stylesheet_links = [
+        tag.get("href") for tag in stylesheet_tags if tag.get("href")
+    ]
+    return stylesheet_links
 
 
-def fetch_style_tags(soup: BeautifulSoup):
-    tags = soup.find_all('style')
-    style_tags = []
-    for tag in tags:
-        style_tags.append(tag)
-    return style_tags
+def fetch_internal_css(soup: BeautifulSoup) -> list:
+    styles = [
+        style.get_text() for style in soup.find_all("style")
+    ]
+    inline_styles = [
+        tag.get("style") for tag in soup.find_all(style=True)
+    ]
+    return styles + inline_styles
 
 
 def fetch_js(soup: BeautifulSoup):

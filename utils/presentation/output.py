@@ -3,9 +3,9 @@ from utils.network.certs import Certificate, get_tls_certificate, verify_hostnam
 from utils.risk.classifiers import classify_risk, classify_expiration_date
 from utils.presentation.style import highlight, highlight_green, highlight_yellow, highlight_red
 from utils.url.parsing import extract_hostname, contains_scheme
-from utils.network.html_analysis import analyze_html, analyze_external_domains
+from utils.network.html_analysis import analyze_html, analyze_external_domains, analyze_css
 from utils.network.whois import normalize_expiration_date, query_url, query_exists
-from utils.network.requests import  fetch_html_soup
+from utils.network.requests import  fetch_page_resource_soup
         
 
 def print_domain_identity(domain_name: str):
@@ -155,7 +155,7 @@ def print_html_analysis(url: str):
     if not contains_scheme(url):
         url = "https://" + url
 
-    soup = fetch_html_soup(url)
+    soup = fetch_page_resource_soup(url)
 
     if soup:
         print(f"HTML Retrieved: {highlight_green("Yes")}")
@@ -169,7 +169,7 @@ def print_html_analysis(url: str):
     num_scripts_detected = result["script_count"]
     num_scripts_detected = (
         highlight_green(num_scripts_detected)
-        if num_scripts_detected == 0 
+        if num_scripts_detected == 0
         else highlight_yellow(num_scripts_detected)
     )
     print(f"Scripts Detected: {num_scripts_detected}")
@@ -201,13 +201,30 @@ def print_html_analysis(url: str):
     if sus_links:
         print(f"Suspicious External Links: {', '.join(sus_links)}")
 
+    result = analyze_css(url, soup)
+
+    # CSS check for invisible elements and overlays
+    hidden_elems_flag = result["hidden_elements_present"]
+    overlays_flag = result["overlays_present"]
+    invisible_elems_detected = (
+        highlight_yellow("Yes")
+        if hidden_elems_flag
+        else highlight_green("No")
+    )
+    overlays_detected = (
+        highlight_yellow("Yes")
+        if overlays_flag
+        else highlight_green("No")
+    )
+    print(f"Hidden Elements Detected: {invisible_elems_detected}")
+    print(f"Overlays Detected: {overlays_detected}")
 
 
 def display_domain_overview(params: str):
     """
     Displays summary of domain registration with security warnings.
     """
-    query = query_url(params.url) if params.domain_identity else None
+    query = query_url(params.url)
 
     # Early return for non-existent URLs
     if not query_exists(params.url, query):
