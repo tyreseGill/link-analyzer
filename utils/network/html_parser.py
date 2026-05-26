@@ -42,9 +42,9 @@ def fetch_js(soup: BeautifulSoup):
     return scripts
 
 
-def fetch_links(soup: BeautifulSoup) -> list:
+def fetch_absolute_links(soup: BeautifulSoup) -> list:
     """
-    Retrieves all links listed on the HTML page for the given URL.
+    Retrieves all absolute links listed on the HTML page for the given URL.
 
     Args:
         soup: Parsed HTML to be inspected.

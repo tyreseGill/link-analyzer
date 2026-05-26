@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup, element
 from utils.presentation.style import RED, YELLOW
-from utils.network.html_parser import fetch_links, fetch_js
+from utils.network.html_parser import fetch_absolute_links, fetch_js, fetch_external_css
 from utils.network.whois import query_exists, query_url
 from utils.risk.classifiers import classify_url_structure, classify_domain_identity
 from utils.url.parsing import extract_hostname, contains_ip_address
@@ -36,8 +36,10 @@ def fetch_links_to_external_domains(url: str, soup: BeautifulSoup) -> set:
         set: List of external domains associated with the URL.
     """
     origin_hostname = extract_hostname(url)
-    links = fetch_links(soup)
-    hrefs = [ link.get('href') for link in links ]
+    abs_links = fetch_absolute_links(soup)
+    hrefs = [
+        link.get('href') for link in abs_links
+    ]
     external_domains = set()
 
     for href in hrefs:
@@ -111,7 +113,8 @@ def analyze_html(url: str, soup: BeautifulSoup) -> dict:
 
     # Mismatched domains
     num_mismatches = sum(
-        1 for hyperlink in fetch_links(soup) if href_text_mismatch(hyperlink)
+        1 for hyperlink in fetch_absolute_links(soup)
+        if href_text_mismatch(hyperlink)
     )
     result["mismatch_count"] = num_mismatches
 
