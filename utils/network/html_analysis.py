@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup, element
 from utils.presentation.style import RED, YELLOW
-from utils.network.html import fetch_links, fetch_js, fetch_external_css
+from utils.network.html_parser import fetch_links, fetch_js, fetch_external_css
 from utils.network.whois import query_exists, query_url
 from utils.risk.classifiers import classify_url_structure, classify_domain_identity
 from utils.url.parsing import extract_hostname, contains_ip_address
