@@ -6,13 +6,14 @@ from utils.presentation.style import *
 from utils.text_utils import find_literal, find_literals
 from utils.url.parsing import *
 from utils.network.whois import normalize_expiration_date
+from utils.risk_context import RiskContext
 
 
 DAYS_IN_YEAR = 365
 DAYS_IN_MONTH = 30
 
 
-def classify_risk(params: argparse.Namespace, query: dict | None = None) -> dict:
+def classify_risk(params: argparse.Namespace, ctx: RiskContext, query: dict | None = None) -> dict:
     """
     Classifies severity of individual domain attributes.
 
@@ -24,14 +25,14 @@ def classify_risk(params: argparse.Namespace, query: dict | None = None) -> dict
     result = {}
 
     if params.domain_identity:
-        result |= classify_domain_identity(query)
+        result |= classify_domain_identity(query, ctx)
 
     if params.url_structure:
         url = params.url
-        result |= classify_url_structure(url)
+        result |= classify_url_structure(url, ctx)
 
     if params.transport_security:
-        result |= classify_transport_security(domain_name)
+        result |= classify_transport_security(domain_name, ctx)
         
     if params.tls_cert:
         pass
@@ -42,7 +43,7 @@ def classify_risk(params: argparse.Namespace, query: dict | None = None) -> dict
     return result
 
 
-def classify_domain_identity(query):
+def classify_domain_identity(query: dict, ctx: RiskContext):
     valid_domain_flag = is_domain_registration_valid(query)
     creation_date = normalize_expiration_date(query.creation_date)
     exp_date = normalize_expiration_date(query.expiration_date)
@@ -51,6 +52,13 @@ def classify_domain_identity(query):
     age_num, age_unit, age_color = classify_domain_age(age)
     expiration_date_color = classify_expiration_risk(exp_date, age)
     domain_reg_color, domain_reg_status = classify_domain_registration(valid_domain_flag)
+
+    if age_color == RED:
+        ctx.add("young_domain")
+    if expiration_date_color == RED:
+        ctx.add("expires_shortly")
+    if domain_reg_color == RED:
+        ctx.add("expired_domain")
 
     return {
         "age": {
@@ -68,17 +76,12 @@ def classify_domain_identity(query):
     }
 
 
-def classify_url_structure(url: str):
-    color_coded_url = classify_url(url)
-    return {
-        "url_structure": {
-            "rendered_url": color_coded_url
-        }
-    }
-
-
-def classify_transport_security(domain_name: str):
+def classify_transport_security(domain_name: str, ctx: RiskContext):
     https_supp_color, https_supp_status = classify_https_status(domain_name)
+
+    if https_supp_color == RED:
+        ctx.add("http_link")
+
     return {
         "https_support": {
             "color": https_supp_color,
@@ -112,12 +115,12 @@ def classify_domain_age(domain_age: dt) -> tuple:
     """
     domain_age_days = domain_age.days
 
-    # Trusted if domain has been registered for over a year
+    # CASE 1: Trusted if domain has been registered for over a year
     if domain_age_days > DAYS_IN_YEAR:
         val = domain_age_days // DAYS_IN_YEAR
         unit = "years"
         color = GREEN
-    # Suspicious if domain has been registered for less than a year
+    # CASE 2: Suspicious if domain has been registered for less than a year
     else:
         val = domain_age_days
         unit = "days"
@@ -190,7 +193,7 @@ def is_domain_registration_valid(query: dict) -> bool:
         return True
 
 
-def detect_url_spans(url: str) -> list:
+def detect_url_spans(url: str, ctx: RiskContext) -> list:
     """
     Runs detection phase to aggregate raw Span objects.
 
@@ -243,8 +246,12 @@ def detect_url_spans(url: str) -> list:
         fetch_ip_addresses: RED
     }
 
-    spans.extend(collect_spans(domain_checks, url, domain))
-    spans.extend(collect_spans(misc_checks, url))
+    spans.extend(
+        collect_spans(domain_checks, url, domain)
+    )
+    spans.extend(
+        collect_spans(misc_checks, url)
+    )
 
     return spans
 
@@ -318,13 +325,57 @@ def render_url(url: str, spans: list) -> str:
     return rendered_url
 
 
-def classify_url(url: str) -> str:
+def classify_url_structure(url: str, ctx: RiskContext) -> str:
     """
     Classifies and highlights URL risk indicators.
 
     Returns:
         str: ANSI-highlighted URL.
     """
-    spans = detect_url_spans(url)
+    spans = detect_url_spans(url, ctx)
     spans = resolve_spans(spans)
-    return render_url(url, spans)
+    color_coded_url = render_url(url, spans)
+    generate_url_risk_context(url, ctx)
+
+    return {
+        "url_structure": {
+            "rendered_url": color_coded_url
+        }
+    }
+
+
+def generate_url_risk_context(url: str, ctx: RiskContext, domain: str=None):
+    """
+    Runs multiple span-returning detection functions along with their expected color.
+
+    Attributes:
+        check_list: Dictionary of function-color pairs determining the color for the spans returned from each function.
+        url: URL to inspect.
+        domain: Optional, determines whether scope is confined to domain or the full URL.
+
+    Returns:
+        list: Aggregated spans from all detection functions.
+    """
+    check_url = {
+        contains_ip_address,
+        contains_multiple_subdomains,
+        contains_suspicious_keywords,
+        contains_uncommon_tld,
+        is_url_long,
+    }
+
+    check_domain = {
+        contains_at_symbols,
+        contains_digits,
+        contains_hyphens,
+        contains_special_chars
+    }
+
+    _, domain, _ = extract_url_components(url)
+
+    for check_func in check_url:
+        check_func(url, ctx)
+
+    for check_func in check_domain:
+        check_func(domain, ctx)
+    

@@ -5,6 +5,7 @@ from utils.network.whois import query_exists, query_url
 from utils.risk.classifiers import classify_url_structure, classify_domain_identity
 from utils.url.parsing import extract_hostname, contains_ip_address
 from utils.network.requests import fetch_page_resource
+from utils.risk_context import RiskContext
 import re
 
 
@@ -89,7 +90,7 @@ def href_text_mismatch(anchor: element.Tag) -> bool:
     return False
 
 
-def analyze_html(url: str, soup: BeautifulSoup) -> dict:
+def analyze_html(url: str, soup: BeautifulSoup, ctx: RiskContext = None) -> dict:
     """
     Parses HTML for the presence of JS scripts, links to external domains, 
     and any misleading hyperlinks.
@@ -107,9 +108,15 @@ def analyze_html(url: str, soup: BeautifulSoup) -> dict:
     js_scripts = fetch_js(soup)
     result["script_count"] = len(js_scripts) if js_scripts else 0
 
+    if result["script_count"] > 10 and ctx:
+        ctx.add("many_scripts")
+
     # External domains
     external_domains = fetch_links_to_external_domains(url, soup)
     result["external_domains"] = external_domains
+
+    if external_domains and ctx:
+        ctx.add("external_links")
 
     # Mismatched domains
     num_mismatches = sum(
@@ -117,6 +124,9 @@ def analyze_html(url: str, soup: BeautifulSoup) -> dict:
         if href_text_mismatch(hyperlink)
     )
     result["mismatch_count"] = num_mismatches
+
+    if num_mismatches > 0 and ctx:
+        ctx.add("mismatched_links")
 
     return result
 
@@ -183,14 +193,19 @@ def contains_hidden_elements(txt: str) -> bool:
     return any(re.search(pattern, txt) for pattern in patterns)
 
 
-def contains_sus_hidden_elem(txt: str):
+def contains_sus_hidden_elem(txt: str, ctx: RiskContext = None):
     hidden = contains_hidden_elements(txt)
     has_abs_pos = re.search(r"position:\s*(absolute|fixed)", txt)
     large_area = re.search(r"(width|height):\s*(100%|100vh|100vw)", txt)
-    return hidden and (has_abs_pos or large_area)
+    sus_hidden_elem_found = hidden and (has_abs_pos or large_area)
+
+    if sus_hidden_elem_found and ctx:
+        ctx.add("hidden_elements")
+    
+    return sus_hidden_elem_found
 
 
-def contains_overlay(txt: str) -> bool:
+def contains_overlay(txt: str, ctx: RiskContext = None) -> bool:
     """
     Checks if HTML/CSS text contains overlays.
 
@@ -203,10 +218,15 @@ def contains_overlay(txt: str) -> bool:
     """
     has_abs_pos = re.search(r"position:\s*(absolute|fixed)", txt)
     has_high_z = re.search(r"z-index:\s*(\d{2,})", txt)
-    return bool(has_abs_pos and has_high_z)
+    overlay_found = bool(has_abs_pos and has_high_z)
+    
+    if overlay_found and ctx:
+        ctx.add("overlay_detected")
+
+    return overlay_found
 
 
-def analyze_css(html: str, stylesheet_links: list[str]) -> dict:
+def analyze_css(html: str, stylesheet_links: list[str], ctx: RiskContext = None) -> dict:
     """
     Parses HTML and CSS texts for the presence of CSS that can be used to 
     make invisible elements and overlays.
@@ -245,9 +265,9 @@ def analyze_css(html: str, stylesheet_links: list[str]) -> dict:
     for txt in parseable_txt:
         if hidden_elements_found and overlay_found:
             break
-        if contains_sus_hidden_elem(txt):
+        if contains_sus_hidden_elem(txt, ctx):
             hidden_elements_found = True
-        if contains_overlay(txt):
+        if contains_overlay(txt, ctx):
             overlay_found = True
 
     result["hidden_elements_present"] = hidden_elements_found

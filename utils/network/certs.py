@@ -1,4 +1,5 @@
 from utils.url.parsing import extract_hostname, extract_url_components
+from utils.risk_context import RiskContext
 from datetime import datetime, timezone as tz
 import ssl
 import socket
@@ -28,17 +29,22 @@ class Certificate:
     def __repr__(self):
         return f'Common Name: {self.subject_cn}, Issuer Org: {self.issuer_org_name}, Issuer CN: {self.issuer_cn}, Version: {self.version}, Valid Between: {self.not_before} thru {self.not_after}, SANS: {self.sans}'
 
-    def is_valid(self):
+    def is_valid(self, ctx: RiskContext = None):
         current_time = datetime.now(tz.utc)
-        return self.not_before <= current_time <= self.not_after
+        validity_flag = self.not_before <= current_time <= self.not_after
+        if not validity_flag and ctx:
+            ctx.add("expired_tls_cert")
+        return validity_flag
     
     def days_until_expiration(self):
         current_time = datetime.now(tz.utc)
         return (self.not_after - current_time).days
     
-    def get_age(self):
+    def get_age(self, ctx: RiskContext = None):
         current_time = datetime.now(tz.utc).date()
         age_days = (current_time - self.not_before.date()).days
+        if age_days > 47 and ctx:
+            ctx.add("cert_in_need_of_renewal")
         return age_days
 
 
@@ -67,7 +73,7 @@ def get_tls_certificate(url: str) -> Certificate:
     return Certificate(cert)
 
 
-def verify_hostname(cert: Certificate, url: str) -> bool:
+def verify_hostname(cert: Certificate, url: str, ctx: RiskContext = None) -> bool:
     """
     Performs check to verify that hostname and certificate match.
     Ensures the site is secure and not fraudulent.
@@ -83,10 +89,13 @@ def verify_hostname(cert: Certificate, url: str) -> bool:
     hostnames = [f"{sub}.{dom}.{tld}", f"{dom}.{tld}"]
     match_found = any(san.replace('*.', '') in hostnames for san in cert.sans)
 
+    if not match_found:
+        ctx.add("hostname_mismatch")
+
     return match_found
 
 
-def is_self_signed(cert: Certificate) -> bool:
+def is_self_signed(cert: Certificate, ctx: RiskContext = None) -> bool:
     """
     Performs check to verify whether a certificate was self-signed or not.
 
@@ -98,4 +107,9 @@ def is_self_signed(cert: Certificate) -> bool:
     """
     subject_cn = cert.subject_cn
     issuer_cn  = cert.issuer_cn
-    return True if subject_cn == issuer_cn else False
+    self_signed_flag =  bool(subject_cn == issuer_cn)
+
+    if self_signed_flag and ctx:
+        ctx.add("self_signed_cert")
+
+    return self_signed_flag

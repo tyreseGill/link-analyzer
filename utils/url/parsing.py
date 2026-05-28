@@ -1,6 +1,7 @@
 import re
 import tldextract
 from urllib.parse import urlparse, parse_qs
+from utils.risk_context import RiskContext
 
 
 SUSPICIOUS_KEYWORDS = ["redirect", "redirect_url", "return", "return_url",
@@ -182,6 +183,7 @@ def fetch_special_chars(url: str) -> list:
         (pos, pos + 1) for (pos, char) in enumerate(url)
         if ord(char) > 127
     ]
+
     return matches
 
 
@@ -228,61 +230,98 @@ def fetch_at_symbols(url: str) -> list:
 
 # Boolean-returning pattern matching functions
 
-def contains_suspicious_keywords(list_strings: list) -> bool:
+def contains_suspicious_keywords(list_strings: list, ctx: RiskContext = None) -> bool:
     """Determines if a list contains any suspicious keywords associated with phishing."""
     if not list_strings:
         return False
-    return any(str.lower() in SUSPICIOUS_KEYWORDS for str in list_strings)
+    sus_keywords_found = any(str.lower() in SUSPICIOUS_KEYWORDS for str in list_strings)
+    if sus_keywords_found and ctx:
+        ctx.add("sus_keywords")
+    return sus_keywords_found
 
 
 def contains_scheme(target_str: str) -> bool:
     """Determines if a URL specifies a scheme (http/https)."""
     pattern = re.compile(r"https?://")
-    matches = list(pattern.finditer(target_str))
-    return True if matches else False
+    scheme_found = bool(
+        list(pattern.finditer(target_str))
+    )
+    return scheme_found
 
 
-def contains_multiple_subdomains(subdomain: str) -> bool:
+def contains_multiple_subdomains(subdomain: str, ctx: RiskContext = None) -> bool:
     """Determines if a subdomain consists of more than one subdomain."""
     subdomains = fetch_subdomains(subdomain)
-    return True if len(subdomains) > 1 else False
+    multiple_subdomains_found = len(subdomains) > 1
+    if multiple_subdomains_found and ctx:
+        ctx.add("multiple_subdomains")
+    return multiple_subdomains_found
     
 
-def contains_ip_address(url: str) -> bool:
+def contains_ip_address(url: str, ctx: RiskContext = None) -> bool:
     """Determines if a URL contains an IPv4 address."""
     pattern = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
-    return bool(pattern.search(url))
+    ip_address_found = bool(pattern.search(url))
+    if ip_address_found and ctx:
+        ctx.add("ip_address")
+    return ip_address_found
 
 
-def contains_at_symbols(target_str: str) -> bool:
+def contains_at_symbols(target_str: str, ctx: RiskContext = None) -> bool:
     """Determines if a URL contains any "@" symbols."""
+    at_symbols_found = "@" in target_str
+    if at_symbols_found and ctx:
+        ctx.add("at_symbol_in_url")
     return True if "@" in target_str else False
 
 
-def contains_hyphens(target_str: str) -> bool:
+def contains_hyphens(target_str: str, ctx: RiskContext = None) -> bool:
     """Determines if a URL contains any "-" symbols."""
-    return True if "-" in target_str else False
+    hyphens_found = "-" in target_str
+    if hyphens_found and ctx:
+        ctx.add("hyphens_in_url")
+    return hyphens_found
 
 
-def contains_digits(target_str: str) -> bool:
+def contains_digits(target_str: str, ctx: RiskContext = None) -> bool:
     """Determines if a URL contains any digits."""
-    return True if any(char.isdigit() for char in target_str) else False
+    digits_found = any(char.isdigit() for char in target_str) and not contains_ip_address(target_str)
+    if digits_found and ctx:
+        ctx.add("digits_in_url")
+    return digits_found
 
 
-def contains_special_chars(target_str: str) -> bool:
+def contains_special_chars(target_str: str, ctx: RiskContext = None) -> bool:
     """Determines if a URL contains any special characters."""
-    return True if any(ord(char) > 127 for char in target_str) else False
+    special_char_found = any(ord(char) > 127 for char in target_str)
+    if special_char_found and ctx:
+        ctx.add("special_chars")
 
 
-def is_url_long(url: str) -> bool:
+def contains_uncommon_tld(url: str, ctx: RiskContext = None) -> bool:
+    """Determines if the top-level domain of a URL is common or not."""
+    _, _, tld = extract_url_components(url)
+    uncommon_tld_found = tld not in SAFE_TLDS
+    if uncommon_tld_found and ctx:
+        ctx.add("uncommon_tld")
+    return uncommon_tld_found
+
+
+def is_url_long(url: str, ctx: RiskContext = None) -> bool:
     """Determines if a URL is unusually long according to SEO benchmarks."""
     URL_STANDARD_LENGTH = 75
-    return True if len(url) > URL_STANDARD_LENGTH else False
+    is_long = len(url) > URL_STANDARD_LENGTH
+    if is_long and ctx:
+        ctx.add("long_url")
+    return is_long
 
 
-def is_url_shortener(registered_domain: str) -> bool:
+def is_url_shortener(registered_domain: str, ctx: RiskContext = None) -> bool:
     """Determines if a URL is associated with a common URL-shorter service."""
-    return True if registered_domain in URL_SHORTENERS else False
+    is_shortner = registered_domain in URL_SHORTENERS
+    if is_shortner and ctx:
+        ctx.add("url_shortner")
+    return is_shortner
 
 
 def is_tld_common(top_level_domain: str) -> bool:
