@@ -6,6 +6,7 @@ from utils.url.parsing import extract_hostname, contains_scheme
 from utils.network.html_analysis import analyze_html, analyze_external_domains, analyze_css, fetch_external_css
 from utils.network.whois import normalize_expiration_date, query_url, query_exists
 from utils.network.requests import  fetch_page_resource_soup, fetch_page_resource
+from utils.risk_context import RiskContext
         
 
 def print_domain_identity(domain_name: str):
@@ -67,22 +68,25 @@ def print_expiration_date(cert: Certificate):
     print(f"Expiration Date: {exp_date} ({days_colored} days from now)")
 
 
-def print_certificate_status(cert: Certificate):
+def print_certificate_status(cert: Certificate, ctx: RiskContext = None):
     cert_status = (
         highlight_green("Valid") 
-        if cert.is_valid() 
+        if cert.is_valid(ctx) 
         else highlight_red("Expired")
     )
     print(f"Certificate Status: {cert_status}\n")
 
 
-def print_certificate_identity(cert: Certificate):
+def print_certificate_identity(cert: Certificate, ctx: RiskContext):
     print(f"Subject CN: {cert.subject_cn}")
     print(f"Issuer Org: {cert.issuer_org_name}\n")
+    
+    if cert.issuer_org_name == "Let's Encrypt":
+        ctx.add("lets_encrypt_cert")
 
 
-def print_certificate_lifecycle(cert: Certificate):
-    age = cert.get_age()
+def print_certificate_lifecycle(cert: Certificate, ctx: RiskContext = None):
+    age = cert.get_age(ctx)
     age_colored = (
         highlight_green(age) 
         if age < 47 
@@ -93,11 +97,15 @@ def print_certificate_lifecycle(cert: Certificate):
     print_expiration_date(cert)
 
 
-def print_certificate_relationships(cert: Certificate, hostname: str):
-    self_signed_status = highlight_red("Yes") if is_self_signed(cert) else highlight_green("No")
+def print_certificate_relationships(cert: Certificate, hostname: str, ctx: RiskContext = None):
+    self_signed_status = (
+        highlight_red("Yes")
+        if is_self_signed(cert, ctx)
+        else highlight_green("No")
+    )
     hostname_cert_match = (
         highlight_green("Yes") 
-        if verify_hostname(cert, hostname) 
+        if verify_hostname(cert, hostname, ctx) 
         else highlight_red("No")
     )
     sans_str = ", ".join(cert.sans)
@@ -107,7 +115,7 @@ def print_certificate_relationships(cert: Certificate, hostname: str):
     print(f"SANs: {sans_str}")
 
 
-def print_certificate_info(hostname: str):
+def print_certificate_info(hostname: str, ctx: RiskContext = None):
     cert = get_tls_certificate(hostname)
 
     print_trusted_chain(cert)
@@ -115,10 +123,10 @@ def print_certificate_info(hostname: str):
     if not cert:
         return
     
-    print_certificate_status(cert)
-    print_certificate_identity(cert)
-    print_certificate_lifecycle(cert)
-    print_certificate_relationships(cert, hostname)
+    print_certificate_status(cert, ctx)
+    print_certificate_identity(cert, ctx)
+    print_certificate_lifecycle(cert, ctx)
+    print_certificate_relationships(cert, hostname, ctx)
 
 
 def print_domain_identity_analysis(risk: dict, query: dict):
@@ -144,12 +152,12 @@ def print_transport_security_analysis(risk: dict):
     print_https_support_status(risk)
 
 
-def print_cert_analysis(domain_name: str):
+def print_cert_analysis(domain_name: str, ctx: RiskContext = None):
     print("\n================= TLS Certificate Analysis =================\n")
-    print_certificate_info(domain_name)
+    print_certificate_info(domain_name, ctx)
 
 
-def print_html_analysis(url: str):
+def print_html_analysis(url: str, ctx: RiskContext = None):
     print("\n=============== HTML Content & Link Analysis ===============\n")
     
     if not contains_scheme(url):
@@ -163,7 +171,7 @@ def print_html_analysis(url: str):
         print(f"HTML Retrieved: {highlight_red("No")}")
         return
 
-    result = analyze_html(url, soup)
+    result = analyze_html(url, soup, ctx)
 
     # Scripts
     num_scripts_detected = result["script_count"]
@@ -203,7 +211,7 @@ def print_html_analysis(url: str):
 
     html = fetch_page_resource(url)
     external_links = fetch_external_css(soup)
-    result = analyze_css(html, external_links)
+    result = analyze_css(html, external_links, ctx)
 
     # CSS check for invisible elements and overlays
     hidden_elems_flag = result["hidden_elements_present"]
@@ -222,17 +230,26 @@ def print_html_analysis(url: str):
     print(f"Overlays Detected: {overlays_detected}")
 
 
+def print_risk_summary(ctx: RiskContext = None):
+    if not ctx or not ctx.signals:
+        return
+    
+    print("\n======================= Risk Summary =======================\n")
+    ctx.print_statements()
+
+
 def display_domain_overview(params: str):
     """
     Displays summary of domain registration with security warnings.
     """
-    query = query_url(params.url)
+    query = query_url(params.url) if params.domain_identity else None
+    ctx = RiskContext()
 
-    # Early return for non-existent URLs
-    if not query_exists(params.url, query):
+    # Early return for non-existent URLs when query expected
+    if params.domain_identity and not query_exists(params.url, query):
         return
     
-    risk = classify_risk(params, query)
+    risk = classify_risk(params, ctx, query)
     
     if params.domain_identity:
         print_domain_identity_analysis(risk, query)
@@ -245,9 +262,10 @@ def display_domain_overview(params: str):
 
     if params.tls_cert:
         domain_name = extract_hostname(params.url)
-        print_cert_analysis(domain_name)
+        print_cert_analysis(domain_name, ctx)
 
     if params.html:
-        print_html_analysis(params.url)
+        print_html_analysis(params.url, ctx)
     
+    print_risk_summary(ctx)
     print()
