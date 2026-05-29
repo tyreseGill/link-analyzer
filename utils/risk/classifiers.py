@@ -358,7 +358,6 @@ def generate_url_risk_context(url: str, ctx: RiskContext, domain: str=None):
     """
     check_url = {
         contains_ip_address,
-        contains_multiple_subdomains,
         contains_suspicious_keywords,
         contains_uncommon_tld,
         is_url_long,
@@ -371,7 +370,9 @@ def generate_url_risk_context(url: str, ctx: RiskContext, domain: str=None):
         contains_special_chars
     }
 
-    _, domain, _ = extract_url_components(url)
+    subdomain, domain, _ = extract_url_components(url)
+
+    contains_multiple_subdomains(subdomain, ctx)
 
     for check_func in check_url:
         check_func(url, ctx)
