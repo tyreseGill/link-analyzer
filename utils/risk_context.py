@@ -1,3 +1,5 @@
+from utils.presentation.style import highlight_green, highlight_yellow, highlight_red
+
 
 EXPLANATIONS = {
     "young_domain": "Phishing sites often have extremely short lifespans.",
@@ -28,7 +30,7 @@ EXPLANATIONS = {
 
 STATEMENTS = {
     "young_domain": "Young domain",
-    "expires_shortly": "Domain expires shortly; renewal uncertainty may indicate risk.",
+    "expires_shortly": "Domain expires shortly; renewal uncertainty may indicate risk",
     "expired_domain": "Expired domain",
     "no_https": "No HTTPS support",
     "sus_keywords": "Suspicious keywords in URL",
@@ -45,12 +47,39 @@ STATEMENTS = {
     "cert_in_need_of_renewal": "SSL/TLS certificate has surpassed recommended lifetime",
     "hostname_mismatch": "Hostname does not match SSL/TLS certificate info",
     "self_signed_cert": "Self-signed certificate",
-    "lets_encrypt_cert": 'Uses certificate issued by an automated public CA.',
+    "lets_encrypt_cert": 'SSL/TLS certificate issued by an automated public CA',
     "many_scripts": "Many scripts",
     "external_links": "External links",
     "mismatched_links": "Mismatched links",
     "hidden_elements": "Hidden elements",
     "overlay_detected": "Overlay detected"
+}
+
+RISK_VALUES = {
+    "young_domain": 10,
+    "expires_shortly": 10,
+    "expired_domain": 10,
+    "no_https": 30,
+    "sus_keywords": 5,
+    "multiple_subdomains": 10,
+    "ip_address": 30,
+    "at_symbol_in_url": 20,
+    "hyphens_in_url": 10,
+    "digits_in_url": 10,
+    "special_chars": 10,
+    "uncommon_tld":5,
+    "long_url": 5,
+    "url_shortner": 25,
+    "expired_tls_cert": 10,
+    "cert_in_need_of_renewal": 5,
+    "hostname_mismatch": 25,
+    "self_signed_cert": 10,
+    "lets_encrypt_cert": 5,
+    "many_scripts": 5,
+    "external_links": 5,
+    "mismatched_links": 30,
+    "hidden_elements": 5,
+    "overlay_detected": 5
 }
 
 
@@ -70,3 +99,17 @@ class RiskContext:
     def print_explanations(self):
         for signal in self.signals:
             print(f"- {EXPLANATIONS[signal]}")
+
+    def print_risk_score(self):
+        risk_score = sum(
+            RISK_VALUES[signal] for signal in self.signals
+        )
+        
+        if 0 <= risk_score <= 10:
+            risk_score = highlight_green(risk_score)
+        elif risk_score < 20:
+            risk_score = highlight_yellow(risk_score)
+        else:
+            risk_score = highlight_red(risk_score)
+
+        print(f"Risk Score: {risk_score}\n")

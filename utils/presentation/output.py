@@ -235,6 +235,7 @@ def print_risk_summary(ctx: RiskContext = None):
         return
     
     print("\n======================= Risk Summary =======================\n")
+    ctx.print_risk_score()
     ctx.print_statements()
 
 
