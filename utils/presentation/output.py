@@ -52,8 +52,12 @@ def print_url_info(risk: dict):
     f"\t{highlight_green("GREEN")} = Expected / secure component")
 
 
-def print_trusted_chain(cert: Certificate):
+def print_trusted_chain(cert: Certificate, ctx: RiskContext = None):
     trusted_ca_chain_flag = highlight_green("Yes") if cert else highlight_red("No")
+
+    if not cert and ctx:
+        ctx.add("unreliable_cert")
+
     print(f"Trusted Chain: {trusted_ca_chain_flag}")
 
 
@@ -118,7 +122,7 @@ def print_certificate_relationships(cert: Certificate, hostname: str, ctx: RiskC
 def print_certificate_info(hostname: str, ctx: RiskContext = None):
     cert = get_tls_certificate(hostname)
 
-    print_trusted_chain(cert)
+    print_trusted_chain(cert, ctx)
 
     if not cert:
         return
