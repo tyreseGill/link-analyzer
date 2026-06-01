@@ -1,4 +1,5 @@
 from utils.presentation.style import highlight_green, highlight_yellow, highlight_red
+from utils.rules_engine import deduce_rule
 
 
 EXPLANATIONS = {
@@ -107,9 +108,17 @@ class RiskContext:
         
         if 0 <= risk_score <= 10:
             risk_score = highlight_green(risk_score)
-        elif risk_score < 20:
+        elif risk_score <= 20:
             risk_score = highlight_yellow(risk_score)
         else:
             risk_score = highlight_red(risk_score)
 
         print(f"Risk Score: {risk_score}\n")
+
+    def print_conclusion(self):
+        deductions = deduce_rule(self.signals)
+
+        if deductions == "":
+            deductions = highlight_green("All Clear")
+
+        print(f"\nVerdict: {deductions}")
