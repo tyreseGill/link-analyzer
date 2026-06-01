@@ -80,7 +80,7 @@ def classify_transport_security(domain_name: str, ctx: RiskContext):
     https_supp_color, https_supp_status = classify_https_status(domain_name)
 
     if https_supp_color == RED:
-        ctx.add("http_link")
+        ctx.add("no_https")
 
     return {
         "https_support": {
