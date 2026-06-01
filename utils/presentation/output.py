@@ -230,13 +230,13 @@ def print_html_analysis(url: str, ctx: RiskContext = None):
     print(f"Overlays Detected: {overlays_detected}")
 
 
-def print_risk_summary(ctx: RiskContext = None):
+def print_risk_summary(explain_bool: bool, ctx: RiskContext = None):
     if not ctx or not ctx.signals:
         return
     
     print("\n======================= Risk Summary =======================\n")
     ctx.print_risk_score()
-    ctx.print_statements()
+    ctx.print_statements(explain_statement=explain_bool)
     ctx.print_conclusion()
 
 
@@ -269,5 +269,5 @@ def display_domain_overview(params: str):
     if params.html:
         print_html_analysis(params.url, ctx)
     
-    print_risk_summary(ctx)
+    print_risk_summary(params.explain, ctx)
     print()

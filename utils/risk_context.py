@@ -93,14 +93,12 @@ class RiskContext:
     def add(self, signal: str):
         self.signals.add(signal)
 
-    def print_statements(self):
+    def print_statements(self, explain_statement: bool = False):
         for signal in self.signals:
             print(f"- {STATEMENTS[signal]}")
-
-    def print_explanations(self):
-        for signal in self.signals:
-            print(f"- {EXPLANATIONS[signal]}")
-
+            if explain_statement:
+                print(f"\t↳ {EXPLANATIONS[signal]}")
+                
     def print_risk_score(self):
         risk_score = sum(
             RISK_VALUES[signal] for signal in self.signals
