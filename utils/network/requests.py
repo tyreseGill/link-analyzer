@@ -16,6 +16,8 @@ def supports_https(domain_name: str) -> bool:
         return True
     except requests.exceptions.SSLError:
         return False
+    except requests.exceptions.ReadTimeout:
+        return False
 
 
 def fetch_page_resource(url: str) -> str | None:
