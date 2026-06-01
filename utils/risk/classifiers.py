@@ -361,13 +361,13 @@ def generate_url_risk_context(url: str, ctx: RiskContext, domain: str=None):
         contains_suspicious_keywords,
         contains_uncommon_tld,
         is_url_long,
+        contains_special_chars
     }
 
     check_domain = {
         contains_at_symbols,
         contains_digits,
         contains_hyphens,
-        contains_special_chars
     }
 
     subdomain, domain, _ = extract_url_components(url)
