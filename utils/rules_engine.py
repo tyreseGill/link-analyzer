@@ -36,8 +36,7 @@ RULES = [
     # SSL/TLS Certificate
     {
         "name": "Certificate Trust Issue",
-        "all": {"hostname_mismatch"},
-        "any": {"self_signed_cert", "expired_tls_cert"}
+        "all": {"unreliable_cert"},
     },
     # HTML/CSS
     {
