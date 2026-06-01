@@ -17,8 +17,7 @@ RULES = [
     },
     {
         "name": "URL Obfuscation Pattern",
-        "all": {"long_url"},
-        "any": {"multiple_subdomains", "sus_keywords", "special_chars", "digits_in_url"}
+        "any": {"long_url", "multiple_subdomains", "sus_keywords", "special_chars", "digits_in_url"}
     },
     {
         "name": "Potentially Phishing",
