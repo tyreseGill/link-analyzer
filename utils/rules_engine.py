@@ -6,7 +6,7 @@ RULES = [
         "all": {"young_domain", "external_links"},
         "any": {"multiple_subdomains", "ip_address", "at_symbol_in_url", "lets_encrypt_cert"}
     },
-    # URL Strucuture
+    # URL Structure
     {
         "name": "Possible Domain Impersonation",
         "any": {"multiple_subdomains", "digits_in_url", "hyphens_in_url", "special_chars"}
@@ -16,12 +16,12 @@ RULES = [
         "all": {"url_shortner"}
     },
     {
-        "name": "URL Obfuscation Pattern",
-        "any": {"long_url", "multiple_subdomains", "sus_keywords", "special_chars", "digits_in_url"}
+        "name": "IDN homograph attack",
+        "all": {"special_chars"}
     },
     {
-        "name": "Potentially Phishing",
-        "all": {"url_shortner"},
+        "name": "URL Obfuscation Pattern",
+        "all": {"long_url", "sus_keywords"}
     },
     {
         "name": "IP-Based Phishing Attempt",
@@ -44,7 +44,7 @@ RULES = [
         "all": {"mismatched_links"},
         "any": {"external_links"}
     },
-    # TODO: Update detection methods to have reduce the rate of false-positives
+    # TODO: Update detection methods to reduce the rate of false-positives before implementation
     # {
     #     "name": "Clickjacking",
     #     "all": {"hidden_elements", "overlay_detected"}
