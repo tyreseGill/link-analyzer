@@ -121,5 +121,7 @@ class RiskContext:
 
         if deductions == "":
             deductions = highlight_green("All Clear")
+        else:
+            deductions = highlight_yellow(deductions)
 
         print(f"\nVerdict: {deductions}")
