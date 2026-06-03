@@ -97,6 +97,9 @@ class RiskContext:
         self.signals.add(signal)
 
     def print_statements(self, explain_statement: bool = False):
+        if self.signals:
+            print()
+            
         for signal in self.signals:
             print(f"- {STATEMENTS[signal]}")
             if explain_statement:
@@ -114,7 +117,7 @@ class RiskContext:
         else:
             risk_score = highlight_red(risk_score)
 
-        print(f"Risk Score: {risk_score}\n")
+        print(f"Risk Score: {risk_score}")
 
     def print_conclusion(self):
         deductions = deduce_rule(self.signals)
