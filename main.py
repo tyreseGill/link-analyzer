@@ -66,6 +66,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--offline",
+        "--air_gap",
         action="store_true",
         help="Disables all analyses requiring an internet connection."
     )
