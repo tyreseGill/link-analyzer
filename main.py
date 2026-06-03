@@ -21,19 +21,20 @@ class SafeArgumentParser(argparse.ArgumentParser):
 
 def parse_args() -> argparse.Namespace:
     """
-    Manages input parameters for the command-line interface.
+    Manages and defines expected arguments and behavior for the command-line interface.
 
     Returns:
         Namespace: Collection of arguments and the associated input values provided by the user.
     """
     parser = SafeArgumentParser()
 
-    # Defines expected arguments and behavior for CLI
     parser.add_argument(
         "url",
         type=str,
         help="Specifies the URL to be scanned."
     )
+
+    # Analysis flags
     parser.add_argument(
         "--domain_identity",
         action="store_true",
@@ -60,6 +61,13 @@ def parse_args() -> argparse.Namespace:
         help="Outputs details regarding the domain's HTML elements."
     )
     parser.add_argument(
+        "--virustotal",
+        action="store_true",
+        help="Outputs results of VirusTotal analysis of URL regarding presence of malware."
+    )
+
+    # Analysis modes
+    parser.add_argument(
         "--full",
         action="store_true",
         help="Enables all analyses."
@@ -69,6 +77,11 @@ def parse_args() -> argparse.Namespace:
         "--air_gap",
         action="store_true",
         help="Disables all analyses requiring an internet connection."
+    )
+    parser.add_argument(
+        "--passive_analysis",
+        action="store_true",
+        help="Enables only those analyses that don't require a direct connection to a URL's website."
     )
     parser.add_argument(
         "--exclude",
@@ -83,6 +96,8 @@ def parse_args() -> argparse.Namespace:
         ],
         help="Exclude specific analyses."
     )
+
+    # Output flags
     parser.add_argument(
         "--no_explanations",
         action="store_false",
@@ -92,16 +107,6 @@ def parse_args() -> argparse.Namespace:
         "--no_summary",
         action="store_true",
         help="Disables explainations for each stated risk in summary."
-    )
-    parser.add_argument(
-        "--virustotal",
-        action="store_true",
-        help="Outputs results of VirusTotal analysis of URL regarding presence of malware."
-    )
-    parser.add_argument(
-        "--passive_analysis",
-        action="store_true",
-        help="Enables only those analyses that don't require a direct connection to a URL's website."
     )
 
     # Extracts the data associated from the aforementioned arguments
