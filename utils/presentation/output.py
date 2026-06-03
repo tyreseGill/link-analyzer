@@ -276,9 +276,6 @@ def print_virus_total_stats(stats: dict):
 
 
 def print_risk_summary(explain_bool: bool, ctx: RiskContext = None):
-    if not ctx or not ctx.signals:
-        return
-    
     print("\n======================= Risk Summary =======================\n")
     ctx.print_risk_score()
     ctx.print_statements(explain_statement=explain_bool)
