@@ -56,12 +56,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--exclude",
                         action="store_true",
                         help="Enables all analyses minus those specified.")
-    parser.add_argument("--preview",
-                        action="store_true",
-                        help="Generates a static HTML page to showcase what the page looks like.")
     parser.add_argument("--explain",
                         action="store_false",
-                        help="Enables explainations for each stated risk in summary.")
+                        help="Disables explainations for each stated risk in summary.")
 
     # Extracts the data associated from the aforementioned arguments
     params = parser.parse_args()
