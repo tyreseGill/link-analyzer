@@ -106,7 +106,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--no_summary",
         action="store_true",
-        help="Disables explainations for each stated risk in summary."
+        help="Disables printing of risk summary."
     )
 
     # Extracts the data associated from the aforementioned arguments
