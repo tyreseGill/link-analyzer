@@ -5,7 +5,7 @@ from utils.presentation.style import highlight, highlight_green, highlight_yello
 from utils.url.parsing import extract_hostname, contains_scheme
 from utils.network.html_analysis import analyze_html, analyze_external_domains, analyze_css, fetch_external_css
 from utils.network.whois import normalize_expiration_date, query_url, query_exists
-from utils.network.requests import  fetch_page_resource_soup, fetch_page_resource
+from utils.network.requests import  fetch_page_resource_soup, fetch_page_resource, fetch_virustotal_stats, get_api_key
 from utils.risk_context import RiskContext
         
 
@@ -234,6 +234,47 @@ def print_html_analysis(url: str, ctx: RiskContext = None):
     print(f"Overlays Detected: {overlays_detected}")
 
 
+def print_virus_total_stats(stats: dict):
+    num_undetected = stats["undetected"]
+    num_harmless = stats["harmless"]
+    num_suspicious = stats["suspicious"]
+    num_malicious = stats["malicious"]
+    num_total = sum(
+        [num_undetected, num_harmless, num_suspicious, num_malicious]
+    )
+
+    num_undetected = (
+        highlight_red(num_undetected)
+        if num_undetected == 0 and num_harmless == 0
+        else highlight_green(num_undetected)
+    )
+    num_harmless = (
+        highlight_red(num_harmless)
+        if num_harmless == 0
+        else highlight_green(num_harmless)
+    )
+
+    if num_suspicious == 0:
+        num_suspicious = highlight_green(num_suspicious)
+    elif num_suspicious > (0.5 * num_total):
+        num_suspicious = highlight_red(num_suspicious)
+    else:
+        num_suspicious = highlight_yellow(num_suspicious)
+        
+    if num_malicious == 0:
+        num_malicious = highlight_green(num_malicious)
+    elif num_malicious > (0.5 * num_total):
+        num_malicious = highlight_red(num_malicious)
+    else:
+        num_malicious = highlight_yellow(num_malicious)
+
+    print("\n================= VirusTotal Malware Scan ==================\n")
+    print(f"Undetected: {num_undetected}")
+    print(f"Harmless: {num_harmless}")
+    print(f"Suspicious: {num_suspicious}")
+    print(f"Malicious: {num_malicious}") 
+
+
 def print_risk_summary(explain_bool: bool, ctx: RiskContext = None):
     if not ctx or not ctx.signals:
         return
@@ -272,6 +313,10 @@ def display_domain_overview(params: str):
 
     if params.html:
         print_html_analysis(params.url, ctx)
+
+    if params.virustotal:
+        stats = fetch_virustotal_stats(params.url)
+        print_virus_total_stats(stats)
     
     print_risk_summary(params.explain, ctx)
     print()

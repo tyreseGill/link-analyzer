@@ -79,6 +79,11 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
         help="Disables explainations for each stated risk in summary."
     )
+    parser.add_argument(
+        "--virustotal",
+        action="store_true",
+        help="Outputs results of VirusTotal analysis of URL regarding presence of malware."
+    )
 
     # Extracts the data associated from the aforementioned arguments
     params = parser.parse_args()
@@ -102,7 +107,8 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.url_structure,
         params.transport_security,
         params.tls_cert,
-        params.html
+        params.html,
+        params.virustotal
     ])
 
     # Performs all analyses
@@ -112,6 +118,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.transport_security = True
         params.tls_cert = True
         params.html = True
+        params.virustotal = True
     
     # Performs analysis with offline-capabilities
     elif params.offline:
@@ -120,6 +127,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.transport_security = False
         params.tls_cert = False
         params.html = False
+        params.virustotal = False
     
     # Performs all analyses with the exception of any specified analyses
     elif params.exclude:
@@ -128,6 +136,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.transport_security = not params.transport_security
         params.tls_cert = not params.tls_cert
         params.html = not params.html
+        params.virustotal = not params.virustotal
     
     # Performs domain analysis by default if no specific analysis is specified
     elif not analysis_requested:
