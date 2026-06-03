@@ -15,7 +15,8 @@ class SafeArgumentParser(argparse.ArgumentParser):
             and terminate the program with a non-zero exit code.
     """
     def error(self, message: str):
-        print(f"Error: {message}.")
+        print(f"\nError: {message}.\n")
+        self.print_help()
         sys.exit(2)
 
 
@@ -26,64 +27,76 @@ def parse_args() -> argparse.Namespace:
     Returns:
         Namespace: Collection of arguments and the associated input values provided by the user.
     """
-    parser = SafeArgumentParser()
+    parser = SafeArgumentParser(
+        description="Analyze a URL for red flags",
+        usage="\tpython main.py <url> [options]"
+    )
 
+    # Positional
     parser.add_argument(
         "url",
         type=str,
-        help="Specifies the URL to be scanned."
+        help="Target URL to analyze"
     )
 
-    # Analysis flags
-    parser.add_argument(
+    # Analysis Options
+    analysis_group = parser.add_argument_group("Analysis Options")
+
+    analysis_group.add_argument(
         "--domain_identity",
         action="store_true",
-        help="Outputs Whois details concerning the domain of the URL."
+        help="Whois info"
     )
-    parser.add_argument(
+    analysis_group.add_argument(
         "--url_structure",
         action="store_true",
-        help="Outputs details concerning the structure of the URL."
+        help="URL structural analysis"
     )
-    parser.add_argument(
+    analysis_group.add_argument(
         "--transport_security",
         action="store_true",
-        help="Outputs details concerning whether the URL has a secure connection."
+        help="HTTPS check"
     )
-    parser.add_argument(
-        "--tls_cert",
+    analysis_group.add_argument(
+        "--tls",
         action="store_true",
-        help="Outputs details regarding the domain's TLS certificate."
+        help="SSL/TLS certificate info"
     )
-    parser.add_argument(
+    analysis_group.add_argument(
         "--html",
         action="store_true",
-        help="Outputs details regarding the domain's HTML elements."
+        help="HTML analysis"
     )
-    parser.add_argument(
+    analysis_group.add_argument(
         "--virustotal",
         action="store_true",
-        help="Outputs results of VirusTotal analysis of URL regarding presence of malware."
+        help="VirusTotal lookup"
     )
 
-    # Analysis modes
-    parser.add_argument(
+    # Mode Options
+    mode_group = parser.add_argument_group("Mode Options")
+
+    mode_group.add_argument(
         "--full",
         action="store_true",
-        help="Enables all analyses."
+        help="Runs all analyses"
     )
-    parser.add_argument(
+    mode_group.add_argument(
         "--offline",
         "--air_gap",
         action="store_true",
-        help="Disables all analyses requiring an internet connection."
+        help="No network usage"
     )
-    parser.add_argument(
-        "--passive_analysis",
+    mode_group.add_argument(
+        "--passive",
         action="store_true",
-        help="Enables only those analyses that don't require a direct connection to a URL's website."
+        help="No direct contact to target via network connection"
     )
-    parser.add_argument(
+
+    # Filter Options
+    filter_group = parser.add_argument_group("Filter Options")
+
+    filter_group.add_argument(
         "--exclude",
         nargs="+",
         choices=[
@@ -94,19 +107,21 @@ def parse_args() -> argparse.Namespace:
             "html",
             "virustotal"
         ],
-        help="Exclude specific analyses."
+        help="Excludes analyses"
     )
 
-    # Output flags
-    parser.add_argument(
+    # Output Flags Options
+    output_flag = parser.add_argument_group("Output Options")
+    
+    output_flag.add_argument(
         "--no_explanations",
         action="store_false",
-        help="Disables explainations for each stated risk in summary."
+        help="Disables print out of explanations in risk summary"
     )
-    parser.add_argument(
+    output_flag.add_argument(
         "--no_summary",
         action="store_true",
-        help="Disables printing of risk summary."
+        help="Disables print out of risk summary"
     )
 
     # Extracts the data associated from the aforementioned arguments
