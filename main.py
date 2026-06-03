@@ -1,4 +1,4 @@
-from utils import display_domain_overview 
+from utils import display_domain_overview
 import argparse
 import sys
 
@@ -91,6 +91,26 @@ def parse_args() -> argparse.Namespace:
     return params
 
 
+def virustotal_available() -> bool:
+    """
+    Checks if user fulfills necessary criteria to use VirusTotal feature.
+
+    Returns:
+        bool: True, if an API key is provided in a ".env" file. Otherwise, False.
+    """
+    import os
+
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(".env")
+    except ImportError:  # Silently skips if dotenv not installed
+        pass
+
+    API_KEY = os.getenv("API_KEY")
+    
+    return bool(API_KEY)
+
+
 def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
     """
     Determines which analysis sections should run by resolving mutually exclusive, 
@@ -102,6 +122,14 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
     Returns:
         argparse.Namespace: Updated arguments to reflect resolved analysis flags.
     """
+    vt_available = virustotal_available()
+
+    if params.virustotal:
+        if not vt_available:
+            print("INFO: VirusTotal disabled (no API key found)")
+
+        params.virustotal = vt_available
+
     analysis_requested = any([
         params.domain_identity,
         params.url_structure,
@@ -118,7 +146,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.transport_security = True
         params.tls_cert = True
         params.html = True
-        params.virustotal = True
+        params.virustotal = vt_available
     
     # Performs analysis with offline-capabilities
     elif params.offline:
@@ -136,7 +164,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.transport_security = not params.transport_security
         params.tls_cert = not params.tls_cert
         params.html = not params.html
-        params.virustotal = not params.virustotal
+        params.virustotal = not params.virustotal if vt_available else False
     
     # Performs domain analysis by default if no specific analysis is specified
     elif not analysis_requested:
