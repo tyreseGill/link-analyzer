@@ -150,7 +150,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
 
     if params.virustotal:
         if not vt_available:
-            print("INFO: VirusTotal disabled (no API key found)")
+            print("\nINFO: VirusTotal disabled (no API key found)")
 
         params.virustotal = vt_available
 
@@ -192,6 +192,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
     
     # Performs passive analysis by default if no specific analysis is specified
     elif not analysis_requested:
+        print('\nINFO: Running "passive_analysis" by default (no analysis specified)')
         params.domain_identity = True
         params.url_structure = True
         params.virustotal = vt_available
