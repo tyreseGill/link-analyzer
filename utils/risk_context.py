@@ -96,10 +96,10 @@ class RiskContext:
     def add(self, signal: str):
         self.signals.add(signal)
 
-    def print_statements(self, explain_statement: bool = False):
+    def print_statements(self, explain_statement):
         if self.signals:
             print()
-            
+
         for signal in self.signals:
             print(f"- {STATEMENTS[signal]}")
             if explain_statement:
