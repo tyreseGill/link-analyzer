@@ -72,8 +72,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--exclude",
-        action="store_true",
-        help="Enables all analyses minus those specified."
+        nargs="+",
+        choices=[
+            "domain_identity",
+            "url_structure",
+            "transport_security",
+            "tls_cert",
+            "html",
+            "virustotal"
+        ],
+        help="Exclude specific analyses."
     )
     parser.add_argument(
         "--no_explanations",
@@ -177,20 +185,16 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.html = False
         params.virustotal = False
     
-    # Performs all analyses with the exception of any specified analyses
-    elif params.exclude:
-        params.domain_identity = not params.domain_identity
-        params.url_structure = not params.url_structure
-        params.transport_security = not params.transport_security
-        params.tls_cert = not params.tls_cert
-        params.html = not params.html
-        params.virustotal = not params.virustotal if vt_available else False
-    
     # Performs passive analysis by default if no specific analysis is specified
     elif not analysis_requested:
         params.domain_identity = True
         params.url_structure = True
         params.virustotal = vt_available
+
+    # Performs enabled analyses with the exception of any analyses following "--exclude"
+    if params.exclude:
+        for excluded_param in params.exclude:
+            setattr(params, excluded_param, False)
 
     return params
 
