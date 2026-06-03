@@ -181,9 +181,11 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.html = not params.html
         params.virustotal = not params.virustotal if vt_available else False
     
-    # Performs domain analysis by default if no specific analysis is specified
+    # Performs passive analysis by default if no specific analysis is specified
     elif not analysis_requested:
         params.domain_identity = True
+        params.url_structure = True
+        params.virustotal = vt_available
 
     return params
 
