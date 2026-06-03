@@ -304,7 +304,7 @@ def display_domain_overview(params: str):
     if params.transport_security:
         print_transport_security_analysis(risk)
 
-    if params.tls_cert:
+    if params.tls:
         domain_name = extract_hostname(params.url)
         print_cert_analysis(domain_name, ctx)
 

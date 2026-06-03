@@ -112,7 +112,7 @@ def parse_args() -> argparse.Namespace:
 
     # Output Flags Options
     output_flag = parser.add_argument_group("Output Options")
-    
+
     output_flag.add_argument(
         "--no_explanations",
         action="store_false",
@@ -173,17 +173,17 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.domain_identity,
         params.url_structure,
         params.transport_security,
-        params.tls_cert,
+        params.tls,
         params.html,
         params.virustotal
     ])
 
     # Performs analysis without direct network contact
-    if params.passive_analysis :
+    if params.passive :
         params.domain_identity = True
         params.url_structure = True
         params.transport_security = False
-        params.tls_cert = False
+        params.tls = False
         params.html = False
         params.virustotal = vt_available
 
@@ -192,7 +192,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.domain_identity = True
         params.url_structure = True
         params.transport_security = True
-        params.tls_cert = True
+        params.tls = True
         params.html = True
         params.virustotal = vt_available
     
@@ -201,13 +201,13 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.domain_identity = False
         params.url_structure = True
         params.transport_security = False
-        params.tls_cert = False
+        params.tls = False
         params.html = False
         params.virustotal = False
     
     # Performs passive analysis by default if no specific analysis is specified
     elif not analysis_requested:
-        print('\nINFO: Running "passive_analysis" by default (no analysis specified)')
+        print('\nINFO: Running passive analysis by default (no analysis specified)')
         params.domain_identity = True
         params.url_structure = True
         params.virustotal = vt_available

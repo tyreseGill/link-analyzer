@@ -34,7 +34,7 @@ def classify_risk(params: argparse.Namespace, ctx: RiskContext, query: dict | No
     if params.transport_security:
         result |= classify_transport_security(domain_name, ctx)
         
-    if params.tls_cert:
+    if params.tls:
         pass
 
     if params.html:
