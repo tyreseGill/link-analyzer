@@ -29,36 +29,56 @@ def parse_args() -> argparse.Namespace:
     parser = SafeArgumentParser()
 
     # Defines expected arguments and behavior for CLI
-    parser.add_argument("url",
-                        type=str,
-                        help="Specifies the URL to be scanned.")
-    parser.add_argument("--domain_identity",
-                        action="store_true",
-                        help="Outputs Whois details concerning the domain of the URL.")
-    parser.add_argument("--url_structure",
-                        action="store_true",
-                        help="Outputs details concerning the structure of the URL.")
-    parser.add_argument("--transport_security",
-                        action="store_true",
-                        help="Outputs details concerning whether the URL has a secure connection.")
-    parser.add_argument("--tls_cert",
-                        action="store_true",
-                        help="Outputs details regarding the domain's TLS certificate.")
-    parser.add_argument("--html",
-                        action="store_true",
-                        help="Outputs details regarding the domain's HTML elements.")
-    parser.add_argument("--full",
-                        action="store_true",
-                        help="Enables all analyses.")
-    parser.add_argument("--offline",
-                        action="store_true",
-                        help="Disables all analyses requiring an internet connection.")
-    parser.add_argument("--exclude",
-                        action="store_true",
-                        help="Enables all analyses minus those specified.")
-    parser.add_argument("--explain",
-                        action="store_false",
-                        help="Disables explainations for each stated risk in summary.")
+    parser.add_argument(
+        "url",
+        type=str,
+        help="Specifies the URL to be scanned."
+    )
+    parser.add_argument(
+        "--domain_identity",
+        action="store_true",
+        help="Outputs Whois details concerning the domain of the URL."
+    )
+    parser.add_argument(
+        "--url_structure",
+        action="store_true",
+        help="Outputs details concerning the structure of the URL."
+    )
+    parser.add_argument(
+        "--transport_security",
+        action="store_true",
+        help="Outputs details concerning whether the URL has a secure connection."
+    )
+    parser.add_argument(
+        "--tls_cert",
+        action="store_true",
+        help="Outputs details regarding the domain's TLS certificate."
+    )
+    parser.add_argument(
+        "--html",
+        action="store_true",
+        help="Outputs details regarding the domain's HTML elements."
+    )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Enables all analyses."
+    )
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Disables all analyses requiring an internet connection."
+    )
+    parser.add_argument(
+        "--exclude",
+        action="store_true",
+        help="Enables all analyses minus those specified."
+    )
+    parser.add_argument(
+        "--explain",
+        action="store_false",
+        help="Disables explainations for each stated risk in summary."
+    )
 
     # Extracts the data associated from the aforementioned arguments
     params = parser.parse_args()
