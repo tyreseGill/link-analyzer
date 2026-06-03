@@ -84,6 +84,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Outputs results of VirusTotal analysis of URL regarding presence of malware."
     )
+    parser.add_argument(
+        "--passive_analysis",
+        action="store_true",
+        help="Enables only those analyses that don't require a direct connection to a URL's website."
+    )
 
     # Extracts the data associated from the aforementioned arguments
     params = parser.parse_args()
@@ -139,8 +144,17 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
         params.virustotal
     ])
 
+    # Performs analysis without direct network contact
+    if params.passive_analysis :
+        params.domain_identity = True
+        params.url_structure = True
+        params.transport_security = False
+        params.tls_cert = False
+        params.html = False
+        params.virustotal = vt_available
+
     # Performs all analyses
-    if params.full:
+    elif params.full:
         params.domain_identity = True
         params.url_structure = True
         params.transport_security = True
