@@ -76,7 +76,7 @@ def parse_args() -> argparse.Namespace:
         help="Enables all analyses minus those specified."
     )
     parser.add_argument(
-        "--explain",
+        "--no_explanations",
         action="store_false",
         help="Disables explainations for each stated risk in summary."
     )
