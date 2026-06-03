@@ -315,5 +315,7 @@ def display_domain_overview(params: str):
         stats = fetch_virustotal_stats(params.url)
         print_virus_total_stats(stats)
     
-    print_risk_summary(params.no_explanations, ctx)
+    if not params.no_summary:
+        print_risk_summary(params.no_explanations, ctx)
+    
     print()

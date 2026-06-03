@@ -81,6 +81,11 @@ def parse_args() -> argparse.Namespace:
         help="Disables explainations for each stated risk in summary."
     )
     parser.add_argument(
+        "--no_summary",
+        action="store_true",
+        help="Disables explainations for each stated risk in summary."
+    )
+    parser.add_argument(
         "--virustotal",
         action="store_true",
         help="Outputs results of VirusTotal analysis of URL regarding presence of malware."
