@@ -113,10 +113,11 @@ def request_url_from_virustotal(target_url: str) -> dict:
         "x-apikey": get_api_key()
     }
 
-    response = requests.get(target_url, headers=headers)
-    data = response.json()
+    response = requests.get(target_url, headers=headers).json()
+    stats = response["data"]["attributes"]["stats"]
+    status = response["data"]["attributes"]["status"]
 
-    return data["data"]["attributes"]["stats"]
+    return stats, status
 
 
 def fetch_virustotal_stats(url: str) -> dict:
@@ -129,6 +130,24 @@ def fetch_virustotal_stats(url: str) -> dict:
     Returns:
         dict: A dictionary object representing the malware statistics for a URL.
     """
-    processed_url_pg = submit_url_to_virustotal(url)
-    stats = request_url_from_virustotal(processed_url_pg)
-    return stats
+    import time
+
+    analysis_url = submit_url_to_virustotal(url)
+
+    # Ensures ~60 seconds of total delay time between retries: 10 + 20 + 30
+    num_retries = 4
+    delay_secs = 10
+
+    # Polls VirusTotal analysis with increasing delays to allow scan completion
+    for retry_counter in range(1, num_retries + 1):
+        stats, status = request_url_from_virustotal(analysis_url)
+
+        # Returns once analysis is complete and meaningful
+        if status == "completed" and any(stats.values()):
+            return stats
+        
+        # Skip irrelevant sleep time for last attempt
+        if retry_counter < num_retries:
+            time.sleep(delay_secs * retry_counter)
+
+    return None
