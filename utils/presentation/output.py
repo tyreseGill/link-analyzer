@@ -52,7 +52,7 @@ def print_url_info(risk: dict):
     f"\t{highlight_green("GREEN")} = Expected / secure component")
 
 
-def print_trusted_chain(cert: Certificate, ctx: RiskContext = None):
+def print_trusted_chain(cert: Certificate, ctx: RiskContext):
     trusted_ca_chain_flag = highlight_green("Yes") if cert else highlight_red("No")
 
     if not cert and ctx:
@@ -61,8 +61,8 @@ def print_trusted_chain(cert: Certificate, ctx: RiskContext = None):
     print(f"Trusted Chain: {trusted_ca_chain_flag}")
 
 
-def print_expiration_date(cert: Certificate):
-    if not cert.is_valid():
+def print_expiration_date(cert: Certificate, ctx: RiskContext):
+    if not cert.is_valid(ctx):
         return
     
     exp_date = cert.not_after.date()
@@ -72,7 +72,7 @@ def print_expiration_date(cert: Certificate):
     print(f"Expiration Date: {exp_date} ({days_colored} days from now)")
 
 
-def print_certificate_status(cert: Certificate, ctx: RiskContext = None):
+def print_certificate_status(cert: Certificate, ctx: RiskContext):
     cert_status = (
         highlight_green("Valid") 
         if cert.is_valid(ctx) 
@@ -89,7 +89,7 @@ def print_certificate_identity(cert: Certificate, ctx: RiskContext):
         ctx.add("lets_encrypt_cert")
 
 
-def print_certificate_lifecycle(cert: Certificate, ctx: RiskContext = None):
+def print_certificate_lifecycle(cert: Certificate, ctx: RiskContext):
     age = cert.get_age(ctx)
     age_colored = (
         highlight_green(age) 
@@ -98,10 +98,10 @@ def print_certificate_lifecycle(cert: Certificate, ctx: RiskContext = None):
     )
 
     print(f"Last Renewed: {age_colored} days ago")
-    print_expiration_date(cert)
+    print_expiration_date(cert, ctx)
 
 
-def print_certificate_relationships(cert: Certificate, hostname: str, ctx: RiskContext = None):
+def print_certificate_relationships(cert: Certificate, hostname: str, ctx: RiskContext):
     self_signed_status = (
         highlight_red("Yes")
         if is_self_signed(cert, ctx)
@@ -119,7 +119,7 @@ def print_certificate_relationships(cert: Certificate, hostname: str, ctx: RiskC
     print(f"SANs: {sans_str}")
 
 
-def print_certificate_info(hostname: str, ctx: RiskContext = None):
+def print_certificate_info(hostname: str, ctx: RiskContext):
     cert = get_tls_certificate(hostname)
 
     print_trusted_chain(cert, ctx)
@@ -156,12 +156,12 @@ def print_transport_security_analysis(risk: dict):
     print_https_support_status(risk)
 
 
-def print_cert_analysis(domain_name: str, ctx: RiskContext = None):
+def print_cert_analysis(domain_name: str, ctx: RiskContext):
     print("\n================= TLS Certificate Analysis =================\n")
     print_certificate_info(domain_name, ctx)
 
 
-def print_html_analysis(url: str, ctx: RiskContext = None):
+def print_html_analysis(url: str, ctx: RiskContext):
     print("\n=============== HTML Content & Link Analysis ===============\n")
     
     if not contains_scheme(url):
@@ -275,7 +275,7 @@ def print_virus_total_stats(stats: dict):
     print(f"Malicious: {num_malicious}") 
 
 
-def print_risk_summary(explain_bool: bool, ctx: RiskContext = None):
+def print_risk_summary(explain_bool: bool, ctx: RiskContext):
     print("\n======================= Risk Summary =======================\n")
     ctx.print_risk_score()
     ctx.print_statements(explain_statement=explain_bool)

@@ -90,7 +90,7 @@ def href_text_mismatch(anchor: element.Tag) -> bool:
     return False
 
 
-def analyze_html(url: str, soup: BeautifulSoup, ctx: RiskContext = None) -> dict:
+def analyze_html(url: str, soup: BeautifulSoup, ctx: RiskContext) -> dict:
     """
     Parses HTML for the presence of JS scripts, links to external domains, 
     and any misleading hyperlinks.
@@ -193,7 +193,7 @@ def contains_hidden_elements(txt: str) -> bool:
     return any(re.search(pattern, txt) for pattern in patterns)
 
 
-def contains_sus_hidden_elem(txt: str, ctx: RiskContext = None):
+def contains_sus_hidden_elem(txt: str, ctx: RiskContext):
     hidden = contains_hidden_elements(txt)
     has_abs_pos = re.search(r"position:\s*(absolute|fixed)", txt)
     large_area = re.search(r"(width|height):\s*(100%|100vh|100vw)", txt)
@@ -205,7 +205,7 @@ def contains_sus_hidden_elem(txt: str, ctx: RiskContext = None):
     return sus_hidden_elem_found
 
 
-def contains_overlay(txt: str, ctx: RiskContext = None) -> bool:
+def contains_overlay(txt: str, ctx: RiskContext) -> bool:
     """
     Checks if HTML/CSS text contains overlays.
 
@@ -226,7 +226,7 @@ def contains_overlay(txt: str, ctx: RiskContext = None) -> bool:
     return overlay_found
 
 
-def analyze_css(html: str, stylesheet_links: list[str], ctx: RiskContext = None) -> dict:
+def analyze_css(html: str, stylesheet_links: list[str], ctx: RiskContext) -> dict:
     """
     Parses HTML and CSS texts for the presence of CSS that can be used to 
     make invisible elements and overlays.

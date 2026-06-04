@@ -29,7 +29,7 @@ class Certificate:
     def __repr__(self):
         return f'Common Name: {self.subject_cn}, Issuer Org: {self.issuer_org_name}, Issuer CN: {self.issuer_cn}, Version: {self.version}, Valid Between: {self.not_before} thru {self.not_after}, SANS: {self.sans}'
 
-    def is_valid(self, ctx: RiskContext = None):
+    def is_valid(self, ctx: RiskContext):
         current_time = datetime.now(tz.utc)
         validity_flag = self.not_before <= current_time <= self.not_after
         if not validity_flag and ctx:
@@ -40,7 +40,7 @@ class Certificate:
         current_time = datetime.now(tz.utc)
         return (self.not_after - current_time).days
     
-    def get_age(self, ctx: RiskContext = None):
+    def get_age(self, ctx: RiskContext):
         current_time = datetime.now(tz.utc).date()
         age_days = (current_time - self.not_before.date()).days
         if age_days > 47 and ctx:
@@ -73,7 +73,7 @@ def get_tls_certificate(url: str) -> Certificate:
     return Certificate(cert)
 
 
-def verify_hostname(cert: Certificate, url: str, ctx: RiskContext = None) -> bool:
+def verify_hostname(cert: Certificate, url: str, ctx: RiskContext) -> bool:
     """
     Performs check to verify that hostname and certificate match.
     Ensures the site is secure and not fraudulent.
@@ -95,7 +95,7 @@ def verify_hostname(cert: Certificate, url: str, ctx: RiskContext = None) -> boo
     return match_found
 
 
-def is_self_signed(cert: Certificate, ctx: RiskContext = None) -> bool:
+def is_self_signed(cert: Certificate, ctx: RiskContext) -> bool:
     """
     Performs check to verify whether a certificate was self-signed or not.
 
