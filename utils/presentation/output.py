@@ -235,6 +235,12 @@ def print_html_analysis(url: str, ctx: RiskContext):
 
 
 def print_virus_total_stats(stats: dict):
+    print("\n================= VirusTotal Malware Scan ==================\n")
+
+    if stats is None:
+        print("INFO: Failed to fetch statistics from VirusTotal (wait time for completion expired)")
+        return
+        
     num_undetected = stats["undetected"]
     num_harmless = stats["harmless"]
     num_suspicious = stats["suspicious"]
@@ -267,8 +273,7 @@ def print_virus_total_stats(stats: dict):
         num_malicious = highlight_red(num_malicious)
     else:
         num_malicious = highlight_yellow(num_malicious)
-
-    print("\n================= VirusTotal Malware Scan ==================\n")
+    
     print(f"Undetected: {num_undetected}")
     print(f"Harmless: {num_harmless}")
     print(f"Suspicious: {num_suspicious}")
