@@ -1,7 +1,7 @@
+from urllib.parse import urlparse, parse_qs
+from models.risk_context import RiskContext
 import re
 import tldextract
-from urllib.parse import urlparse, parse_qs
-from utils.risk_context import RiskContext
 
 
 SUSPICIOUS_KEYWORDS = ["redirect", "redirect_url", "return", "return_url",

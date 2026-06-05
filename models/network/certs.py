@@ -1,5 +1,5 @@
-from utils.url.parsing import extract_hostname, extract_url_components
-from utils.risk_context import RiskContext
+from models.risk_context import RiskContext
+from models.url.parsing import extract_hostname, extract_url_components
 from datetime import datetime, timezone as tz
 import ssl
 import socket

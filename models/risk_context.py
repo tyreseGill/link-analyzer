@@ -1,5 +1,5 @@
-from utils.presentation.style import highlight_green, highlight_yellow, highlight_red
-from utils.rules_engine import deduce_rule
+from views.style import highlight_green, highlight_yellow, highlight_red
+from models.rules_engine import deduce_rule
 
 
 EXPLANATIONS = {

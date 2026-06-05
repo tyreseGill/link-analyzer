@@ -1,12 +1,13 @@
-import argparse
 from datetime import datetime as dt, timezone as tz
-from utils.presentation.span import Span, make_spans, collect_spans
-from utils.network.requests import supports_https
-from utils.presentation.style import *
+from models.network.requests import supports_https
+from models.network.whois import normalize_expiration_date
+from models.risk_context import RiskContext
+from models.url.parsing import *
 from utils.text_utils import find_literal, find_literals
-from utils.url.parsing import *
-from utils.network.whois import normalize_expiration_date
-from utils.risk_context import RiskContext
+from views.span import Span, make_spans, collect_spans
+from views.style import *
+import argparse
+
 
 
 DAYS_IN_YEAR = 365

@@ -1,5 +1,5 @@
-import requests
 from bs4 import BeautifulSoup
+import requests
 
 
 def supports_https(domain_name: str) -> bool:

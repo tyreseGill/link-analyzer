@@ -1,12 +1,12 @@
 from datetime import datetime as dt
-from utils.network.certs import Certificate, get_tls_certificate, verify_hostname, is_self_signed
-from utils.risk.classifiers import classify_risk, classify_expiration_date
-from utils.presentation.style import highlight, highlight_green, highlight_yellow, highlight_red
-from utils.url.parsing import extract_hostname, contains_scheme
-from utils.network.html_analysis import analyze_html, analyze_external_domains, analyze_css, fetch_external_css
-from utils.network.whois import normalize_expiration_date, query_url, query_exists
-from utils.network.requests import  fetch_page_resource_soup, fetch_page_resource, fetch_virustotal_stats, get_api_key
-from utils.risk_context import RiskContext
+from models.network.certs import Certificate, get_tls_certificate, verify_hostname, is_self_signed
+from models.network.html_analysis import analyze_html, analyze_external_domains, analyze_css, fetch_external_css
+from models.network.whois import normalize_expiration_date, query_url, query_exists
+from models.network.requests import  fetch_page_resource_soup, fetch_page_resource, fetch_virustotal_stats
+from models.risk.classifiers import classify_risk, classify_expiration_date
+from models.risk_context import RiskContext
+from views.style import highlight, highlight_green, highlight_yellow, highlight_red
+from models.url.parsing import extract_hostname, contains_scheme
         
 
 def print_domain_identity(domain_name: str):
