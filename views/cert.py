@@ -2,10 +2,11 @@ from models.risk_context import RiskContext
 from models.network.certs import Certificate, get_tls_certificate, is_self_signed, verify_hostname
 from models.risk.classifiers import classify_expiration_date
 from views.style import highlight_green, highlight_yellow, highlight_red
+from views.helpers import print_header
 
 
 def print_cert_analysis(domain_name: str, ctx: RiskContext):
-    print("\n================= TLS Certificate Analysis =================\n")
+    print_header("TLS Certificate Analysis")
     print_certificate_info(domain_name, ctx)
     
 

@@ -4,10 +4,11 @@ from models.network.html_analysis import analyze_html, analyze_external_domains,
 from models.network.html_parser import fetch_external_css
 from models.url.parsing import contains_scheme
 from views.style import highlight_green, highlight_yellow, highlight_red
+from views.helpers import print_header
 
 
 def print_html_analysis(url: str, ctx: RiskContext):
-    print("\n=============== HTML Content & Link Analysis ===============\n")
+    print_header("HTML Content & Link Analysis")
     
     if not contains_scheme(url):
         url = "https://" + url

@@ -1,9 +1,10 @@
 from models.network.virustotal import fetch_virustotal_stats
 from views.style import highlight_green, highlight_yellow, highlight_red
+from views.helpers import print_header
 
 
 def print_virus_total_stats(url: str):
-    print("\n================= VirusTotal Malware Scan ==================\n")
+    print_header("VirusTotal Malware Scan")
 
     stats = fetch_virustotal_stats(url)
 

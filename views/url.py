@@ -1,4 +1,5 @@
 from views.style import highlight_green, highlight_yellow, highlight_red
+from views.helpers import print_header
 
 
 def print_url_info(risk: dict):
@@ -11,5 +12,5 @@ def print_url_info(risk: dict):
 
 
 def print_url_struct_analysis(risk: dict):
-    print("\n================== URL Structure Analysis ==================\n")
+    print_header("URL Structure Analysis")
     print_url_info(risk)

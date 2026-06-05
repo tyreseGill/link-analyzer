@@ -1,8 +1,9 @@
 from views.style import highlight
+from views.helpers import print_header
 
 
 def print_transport_security_analysis(risk: dict):
-    print("\n============= Web Request & Transport Security =============\n")
+    print_header("Transport Security")
     print_https_support_status(risk)
 
     

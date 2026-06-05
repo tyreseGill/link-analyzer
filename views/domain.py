@@ -1,5 +1,6 @@
 from models.risk.classifiers import normalize_expiration_date
 from views.style import highlight
+from views.helpers import print_header
 from datetime import datetime as dt
 
 
@@ -8,7 +9,7 @@ def print_domain_identity_analysis(risk: dict, query: dict):
     exp_date = normalize_expiration_date(query.expiration_date)
     registar = query.registrar
 
-    print("\n================= Domain Identity Analysis =================\n")
+    print_header("Domain Identity Analysis")
     print_domain_identity(domain_name)
     print_domain_age(risk)
     print_expiration_info(risk, exp_date)
@@ -24,6 +25,7 @@ def print_domain_age(risk: dict):
     color = risk["age"]["color"]
     value = risk["age"]["value"]
     unit = risk["age"]["unit"]
+    
     age = f"{value} {unit}"
     print(f"Age: {highlight(age, color)}")
 
@@ -41,5 +43,6 @@ def print_registrar_info(registar: str):
 def print_domain_registration_status(risk: dict):
     color = risk["domain_reg"]["color"]
     status = risk["domain_reg"]["status"]
+    status = highlight(status, color)
     print(f"Domain Registration Status: {highlight(status, color)}")
     
