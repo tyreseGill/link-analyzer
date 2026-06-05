@@ -15,7 +15,10 @@ class SafeArgumentParser(argparse.ArgumentParser):
             and terminate the program with a non-zero exit code.
     """
     def error(self, message: str):
-        print(f"\nError: {message}.\n")
+        first_letter = message[0]
+        message = message.replace(first_letter, first_letter.upper(), 1)
+
+        print(f"\n[ERROR] {message}.\n")
         self.print_help()
         sys.exit(2)
 
