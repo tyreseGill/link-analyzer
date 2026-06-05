@@ -138,13 +138,21 @@ def fetch_virustotal_stats(url: str) -> dict:
     num_retries = 4
     delay_secs = 10
 
+    print("[INFO] Attempting to obtain results of scan.")
+
     # Polls VirusTotal analysis with increasing delays to allow scan completion
     for retry_counter in range(1, num_retries + 1):
         stats, status = request_url_from_virustotal(analysis_url)
 
-        # Returns once analysis is complete and meaningful
+        # Returns complete and meaningful statistics
         if status == "completed" and any(stats.values()):
+            print()
             return stats
+        
+        if retry_counter == 1:
+            print()
+        
+        print(f"[INFO] Attempt {retry_counter}: Analysis not ready yet, retrying...")
         
         # Skip irrelevant sleep time for last attempt
         if retry_counter < num_retries:
