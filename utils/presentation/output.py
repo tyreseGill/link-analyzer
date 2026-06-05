@@ -234,11 +234,13 @@ def print_html_analysis(url: str, ctx: RiskContext):
     print(f"Overlays Detected: {overlays_detected}")
 
 
-def print_virus_total_stats(stats: dict):
+def print_virus_total_stats(url: str):
     print("\n================= VirusTotal Malware Scan ==================\n")
 
+    stats = fetch_virustotal_stats(url)
+
     if stats is None:
-        print("INFO: Failed to fetch statistics from VirusTotal (wait time for completion expired)")
+        print("\n[INFO] Failed to fetch statistics within alloted time.")
         return
         
     num_undetected = stats["undetected"]
@@ -317,8 +319,7 @@ def display_domain_overview(params: str):
         print_html_analysis(params.url, ctx)
 
     if params.virustotal:
-        stats = fetch_virustotal_stats(params.url)
-        print_virus_total_stats(stats)
+        print_virus_total_stats(params.url)
     
     if not params.no_summary:
         print_risk_summary(params.no_explanations, ctx)
