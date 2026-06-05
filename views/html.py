@@ -4,7 +4,7 @@ from models.network.html_analysis import analyze_html, analyze_external_domains,
 from models.network.html_parser import fetch_external_css
 from models.url.parsing import contains_scheme
 from views.style import highlight_green, highlight_yellow, highlight_red
-from views.helpers import print_header
+from views.helpers import print_header, print_kv
 
 
 def print_html_analysis(url: str, ctx: RiskContext):
@@ -14,50 +14,50 @@ def print_html_analysis(url: str, ctx: RiskContext):
         url = "https://" + url
 
     soup = fetch_page_resource_soup(url)
+    value = highlight_green("Yes") if soup else highlight_red("No")
 
-    if soup:
-        print(f"HTML Retrieved: {highlight_green("Yes")}")
-    else:
-        print(f"HTML Retrieved: {highlight_red("No")}")
+    print_kv("HTML Retrieved", value)
+
+    if not soup:
         return
 
     result = analyze_html(url, soup, ctx)
 
     # Scripts
     num_scripts_detected = result["script_count"]
-    num_scripts_detected = (
+    value = (
         highlight_green(num_scripts_detected)
         if num_scripts_detected == 0
         else highlight_yellow(num_scripts_detected)
     )
-    print(f"Scripts Detected: {num_scripts_detected}")
+    print_kv("Scripts Detected", value)
 
     # External domains
     external_domains = result["external_domains"]
     num_external_domains = len(external_domains)
-    num_external_domains = (
+    value = (
         highlight_green(num_external_domains) 
         if num_external_domains == 0 
         else highlight_yellow(num_external_domains)
     )
-    print(f"External Links: {num_external_domains}")
+    print_kv("External Links", value)
 
     if external_domains:
-        print(f"External Domains: {', '.join(external_domains)}")
+        print_kv("External Domains", ', '.join(external_domains))
 
     # Mismatch
     num_mismatches = result["mismatch_count"]
-    num_mismatches = (
+    value = (
         highlight_green(num_mismatches) 
         if num_mismatches == 0 
         else highlight_red(num_mismatches)
     )
-    print(f"Mismatched URLs: {num_mismatches}")
+    print_kv("Mismatched URLs", value)
 
     # Suspicious domains
     sus_links = analyze_external_domains(external_domains)
     if sus_links:
-        print(f"Suspicious External Links: {', '.join(sus_links)}")
+        print_kv("Suspicious External Links", ', '.join(sus_links))
 
     html = fetch_page_resource(url)
     external_links = fetch_external_css(soup)
@@ -65,17 +65,18 @@ def print_html_analysis(url: str, ctx: RiskContext):
 
     # CSS check for invisible elements and overlays
     hidden_elems_flag = result["hidden_elements_present"]
-    overlays_flag = result["overlays_present"]
     invisible_elems_detected = (
         highlight_yellow("Yes")
         if hidden_elems_flag
         else highlight_green("No")
     )
+    print_kv("Suspicious Hidden Elements Detected", invisible_elems_detected)
+
+    overlays_flag = result["overlays_present"]
     overlays_detected = (
         highlight_yellow("Yes")
         if overlays_flag
         else highlight_green("No")
     )
-    print(f"Suspicious Hidden Elements Detected: {invisible_elems_detected}")
-    print(f"Overlays Detected: {overlays_detected}")
+    print_kv("Overlays Detected", overlays_detected)
     

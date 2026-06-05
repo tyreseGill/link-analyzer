@@ -1,6 +1,6 @@
 from models.network.virustotal import fetch_virustotal_stats
 from views.style import highlight_green, highlight_yellow, highlight_red
-from views.helpers import print_header
+from views.helpers import print_header, print_kv
 
 
 def print_virus_total_stats(url: str):
@@ -45,7 +45,7 @@ def print_virus_total_stats(url: str):
     else:
         num_malicious = highlight_yellow(num_malicious)
     
-    print(f"Undetected: {num_undetected}")
-    print(f"Harmless: {num_harmless}")
-    print(f"Suspicious: {num_suspicious}")
-    print(f"Malicious: {num_malicious}")
+    print_kv("Undetected", num_undetected)
+    print_kv("Harmless", num_harmless)
+    print_kv("Suspicious", num_suspicious)
+    print_kv("Malicious", num_malicious)

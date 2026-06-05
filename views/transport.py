@@ -1,5 +1,5 @@
 from views.style import highlight
-from views.helpers import print_header
+from views.helpers import print_header, print_kv
 
 
 def print_transport_security_analysis(risk: dict):
@@ -10,4 +10,5 @@ def print_transport_security_analysis(risk: dict):
 def print_https_support_status(risk: dict):
     color = risk["https_support"]["color"]
     status = risk["https_support"]["status"]
-    print(f"HTTPS Supported: {highlight(status, color)}")
+    value = highlight(status, color)
+    print_kv("HTTPS Supported", value)

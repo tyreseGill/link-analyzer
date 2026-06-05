@@ -1,6 +1,6 @@
 from models.risk.classifiers import normalize_expiration_date
 from views.style import highlight
-from views.helpers import print_header
+from views.helpers import print_header, print_kv
 from datetime import datetime as dt
 
 
@@ -10,15 +10,11 @@ def print_domain_identity_analysis(risk: dict, query: dict):
     registar = query.registrar
 
     print_header("Domain Identity Analysis")
-    print_domain_identity(domain_name)
+    print_kv("Domain Name", domain_name)
     print_domain_age(risk)
     print_expiration_info(risk, exp_date)
-    print_registrar_info(registar)
+    print_kv("Registrar", registar)
     print_domain_registration_status(risk)
-
-
-def print_domain_identity(domain_name: str):
-    print(f"Domain Name: {domain_name}")
 
 
 def print_domain_age(risk: dict):
@@ -27,22 +23,19 @@ def print_domain_age(risk: dict):
     unit = risk["age"]["unit"]
     
     age = f"{value} {unit}"
-    print(f"Age: {highlight(age, color)}")
+    value = highlight(age, color)
+    print_kv("Age", value)
 
 
-def print_expiration_info(risk: dict, expiration_date: dt):
+def print_expiration_info(risk: dict, exp_date: dt):
     color = risk["exp_date"]["color"]
-    expiration_date = expiration_date.date()
-    print(f"Expiration Date: {highlight(expiration_date, color)}")
-
-
-def print_registrar_info(registar: str):
-    print(f"Registrar: {registar}")
+    value = highlight(exp_date.date(), color)
+    print_kv("Expiration Date", value)
 
 
 def print_domain_registration_status(risk: dict):
     color = risk["domain_reg"]["color"]
     status = risk["domain_reg"]["status"]
-    status = highlight(status, color)
-    print(f"Domain Registration Status: {highlight(status, color)}")
+    value = highlight(status, color)
+    print_kv("Domain Registration Status", value)
     

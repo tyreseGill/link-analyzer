@@ -1,5 +1,3 @@
-from views.style import highlight
-
 
 def print_header(title: str, header_length: int = 70):
     title_length = len(title) + 2
@@ -13,3 +11,7 @@ def print_header(title: str, header_length: int = 70):
         print(f"\n{padding_str} {title} {padding_str}\n")
     else:
         print(f"\n{padding_str} {title} {padding_str + "="}\n")
+
+
+def print_kv(label: str, value: str):
+    print(f"{label}: {value}")
