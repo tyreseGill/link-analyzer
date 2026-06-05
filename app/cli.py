@@ -1,5 +1,6 @@
 import argparse
 import sys
+from models.network.virustotal import virustotal_available
 
 
 class SafeArgumentParser(argparse.ArgumentParser):
@@ -200,23 +201,3 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
             setattr(params, excluded_param, False)
 
     return params
-
-
-def virustotal_available() -> bool:
-    """
-    Checks if user fulfills necessary criteria to use VirusTotal feature.
-
-    Returns:
-        bool: True, if an API key is provided in a ".env" file. Otherwise, False.
-    """
-    import os
-
-    try:
-        from dotenv import load_dotenv
-        load_dotenv(".env")
-    except ImportError:  # Silently skips if dotenv not installed
-        pass
-
-    API_KEY = os.getenv("API_KEY")
-    
-    return bool(API_KEY)
