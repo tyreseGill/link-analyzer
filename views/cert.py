@@ -1,6 +1,7 @@
 from models.risk_context import RiskContext
 from models.network.certs import *
 from models.risk.classifiers import classify_expiration_date
+from utils.text_utils import cutoff_print_statement
 from views.style import highlight_green, highlight_yellow, highlight_red
 from views.helpers import print_header, print_kv
 
@@ -71,6 +72,7 @@ def print_certificate_relationships(cert: Certificate, hostname: str, ctx: RiskC
         else highlight_red("No")
     )
     sans_str = ", ".join(cert.sans)
+    sans_str = cutoff_print_statement(sans_str)
 
     print_kv("\nSelf-Signed", self_signed_status)
     print_kv("Hostname Match", hostname_cert_match)

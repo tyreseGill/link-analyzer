@@ -1,5 +1,6 @@
-from views.style import highlight_green, highlight_yellow, highlight_red
 from models.rules_engine import deduce_rule
+from utils.text_utils import cutoff_print_statement
+from views.style import highlight_green, highlight_yellow, highlight_red
 
 
 EXPLANATIONS = {
@@ -101,9 +102,12 @@ class RiskContext:
             print()
 
         for signal in self.signals:
-            print(f"- {STATEMENTS[signal]}")
+            statement = cutoff_print_statement(STATEMENTS[signal])
+            print(f"- {statement}")
+
             if explain_statement:
-                print(f"\t↳ {EXPLANATIONS[signal]}")
+                explanation = cutoff_print_statement(EXPLANATIONS[signal], extra_padding="  ")
+                print(f"\t↳ {explanation}")
                 
     def print_risk_score(self):
         risk_score = sum(
@@ -120,7 +124,9 @@ class RiskContext:
         print(f"Risk Score: {risk_score}")
 
     def print_conclusion(self):
-        deductions = deduce_rule(self.signals)
+        deductions = cutoff_print_statement(
+            deduce_rule(self.signals)
+        )
 
         if deductions == "":
             deductions = highlight_green("All Clear")
