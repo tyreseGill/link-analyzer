@@ -5,9 +5,10 @@ from views.style import highlight_green, highlight_yellow, highlight_red
 from views.helpers import print_header, print_kv
 
 
-def print_certificate_info(hostname: str, ctx: RiskContext):
+def print_cert_analysis(hostname: str, ctx: RiskContext):
     cert = get_tls_certificate(hostname)
 
+    print_header("SSL/TLS Certificate Analysis")
     print_trusted_chain(cert, ctx)
 
     if not cert:
@@ -19,11 +20,6 @@ def print_certificate_info(hostname: str, ctx: RiskContext):
     print_certificate_relationships(cert, hostname, ctx)
 
 
-def print_cert_analysis(domain_name: str, ctx: RiskContext):
-    print_header("TLS Certificate Analysis")
-    print_certificate_info(domain_name, ctx)
-    
-
 def print_trusted_chain(cert: Certificate, ctx: RiskContext):
     trusted_ca_chain_flag = highlight_green("Yes") if cert else highlight_red("No")
 
@@ -31,18 +27,6 @@ def print_trusted_chain(cert: Certificate, ctx: RiskContext):
         ctx.add("unreliable_cert")
 
     print_kv("Trusted Chain", trusted_ca_chain_flag)
-
-
-def print_expiration_date(cert: Certificate, ctx: RiskContext):
-    if not cert.is_valid(ctx):
-        return
-    
-    exp_date = cert.not_after.date()
-    days = cert.days_until_expiration()
-    days_colored = classify_expiration_date(days)
-    value = f"{exp_date} ({days_colored} days from now)"
-
-    print_kv("Expiration Date", value)
 
 
 def print_certificate_status(cert: Certificate, ctx: RiskContext):
@@ -91,4 +75,15 @@ def print_certificate_relationships(cert: Certificate, hostname: str, ctx: RiskC
     print_kv("\nSelf-Signed", self_signed_status)
     print_kv("Hostname Match", hostname_cert_match)
     print_kv("SANs", sans_str)
+
+
+def print_expiration_date(cert: Certificate, ctx: RiskContext):
+    if not cert.is_valid(ctx):
+        return
     
+    exp_date = cert.not_after.date()
+    days = cert.days_until_expiration()
+    days_colored = classify_expiration_date(days)
+    value = f"{exp_date} ({days_colored} days from now)"
+
+    print_kv("Expiration Date", value)
