@@ -12,7 +12,6 @@ def print_virus_total_stats(url: str):
         print("\n[INFO] Failed to fetch statistics within alloted time.")
         return
         
-    num_undetected, num_harmless, num_suspicious, num_malicious = get_stats(stats)
     num_undetected, num_harmless, num_suspicious, num_malicious = highlight_stats(stats)
     
     print_kv("Undetected", num_undetected)
