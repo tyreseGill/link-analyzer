@@ -11,7 +11,7 @@ SUSPICIOUS_KEYWORDS = ["redirect", "redirect_url", "return", "return_url",
                         "passwd", "pwd", "verify", "confirm",
                         "secure", "script", "cmd", "exec"]
 
-SAFE_TLDS = ["com", "edu", "gov", "org", "net"]
+SAFE_TLDS = ["com", "edu", "gov", "org", "net", "co"]
 
 URL_SHORTENERS = ["bit.ly", "tinyurl.com", "t.co"]
 
