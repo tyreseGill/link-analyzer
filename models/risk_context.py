@@ -15,7 +15,7 @@ EXPLANATIONS = {
     "hyphens_in_url": 'Phishing sites often include hypens ("-") in the domain name to fool users into confusing it with a legitimate domain.',
     "digits_in_url": "Phishing sites often substitute letters with similar-looking digits (e.g. 0 instead of o) in the domain name to fool users into confusing it with a legitimate domain.",
     "special_chars": "Phishing sites often substitute letters with similar-looking unicode characters (e.g. õ instead of o) in the domain name to fool users into confusing it with a legitimate domain.",
-    "uncommon_tld": "Malicious sites are more likely to purchase uncommon top-level domains.",
+    "uncommon_tld": "Bad actors motivated by financial gain are more likely to purchase uncommon top-level domains in exchange for cheaper prices.",
     "long_url": "Long URLs may be attempting to conceal malicious parameters.",
     "url_shortner": "URL shortners hide the destination link and may redirect to an untrusted domain.",
     "expired_tls_cert": "An expired SSL/TLS certificate makes it possible for bad actors to view your traffic to this site unencrypted.",
@@ -102,8 +102,14 @@ class RiskContext:
             print()
 
         for signal in self.signals:
+            risk_value = RISK_VALUES[signal]
             statement = cutoff_print_statement(STATEMENTS[signal])
-            print(f"- {statement}")
+            statement = (
+                highlight_red(statement)
+                if risk_value >= 10
+                else highlight_yellow(statement)
+            )
+            print(f" - {statement}")
 
             if explain_statement:
                 explanation = cutoff_print_statement(EXPLANATIONS[signal], extra_padding="  ")
@@ -125,12 +131,12 @@ class RiskContext:
 
     def print_conclusion(self):
         deductions = cutoff_print_statement(
-            deduce_rule(self.signals)
+            deduce_rule(self.signals),
+            cutoff_length=60,
+            extra_padding=" "
         )
 
         if deductions == "":
             deductions = highlight_green("All Clear")
-        else:
-            deductions = highlight_yellow(deductions)
 
         print(f"\nVerdict: {deductions}")
