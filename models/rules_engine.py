@@ -62,25 +62,50 @@ RULES = [
 ]
 
 
-def deduce_rule(signals: set):
+def deduce_rule(signals: set) -> str:
     """
     Given a set of signals, infers any applicable risks.
 
-    signals: The set of indicators associated with risks.
+    :param signals: The set of indicators associated with risks.
+    :return: Text representing rules deduced from given given signals.
     """
+    from views.style import highlight_red, highlight_yellow
+
     rules_str = []
 
     for rule in RULES:
-        all_elems_present = False
-        any_elems_present = False
+        rule_name = rule.get("name")
 
-        if rule.get("all") is not None:
-            all_elems_present = all( signal in signals for signal in rule.get("all") )
+        all_rule_satisfied = rule_matches(rule, signals)
+        any_rule_satisfied = rule_matches(rule, signals)
 
-        if rule.get("any") is not None:
-            any_elems_present = any( signal in signals for signal in rule.get("any") )
-
-        if (not rule.get("all") or all_elems_present) and (not rule.get("any") or any_elems_present):
-            rules_str.append(rule.get("name"))
+        if all_rule_satisfied and any_rule_satisfied:
+            risk_weight = calc_risk_weight(rule)
+            rule_name = highlight_red(rule_name) if risk_weight >= 20 else highlight_yellow(rule_name)
+            rules_str.append(rule_name)
 
     return ", ".join(rules_str)
+
+
+def rule_matches(rule: dict, signals: set) -> bool:
+    """
+    Determines if the given signals collected satisfy "all" the required elements and at least one of the "any" elements for a given rule.
+
+    :param rule: Dictionary object specifying the partial and complete sets of elements to satisfy a rule.
+    :param signals: Set of compiled red flags used to reach a consensus on a URL's safety.
+    :return: True, if the specified type doesn't exist for the given rule or all the required signals match.
+    """
+    all_elems = rule.get("all", [])
+    any_elems = rule.get("any", [])
+
+    all_satisfied = all(
+        signal in signals
+        for signal in all_elems
+    )
+    
+    any_satisfied = any(
+        signal in signals
+        for signal in any_elems
+        ) if any_elems else True
+    
+    return all_satisfied and any_satisfied
