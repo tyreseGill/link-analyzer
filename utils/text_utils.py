@@ -1,3 +1,5 @@
+import re
+
 
 def find_literal(url: str, text: str):
     """
@@ -56,33 +58,57 @@ def is_alpha(char: str) -> bool:
     return char.isalpha()
     
 
-def cutoff_print_statement(text: str, cutoff_length: int = 60, extra_padding: str = "") -> str:
+def cutoff_print_statement(text: str, cutoff_length: int = 59, extra_padding: str = "") -> str:
     """
-    Enforces a cutoff point for consistency and readability of long print statements.
+    Enforces a cutoff point for printed statements for consistency and improved readability.
 
-    Args:
-        text: String to be inserted with cutoff points.
-        cutoff_length: Amount of characters allowed per line before a cutoff occurs.
-
-    Returns:
-        str: String with hypenated text at cutoff points.
+    :param text: The text to be integrated with cutoff points
+    :param cutoff_length: The maximum allowable length for a print statement before being cut off
+    :param extra_padding: Adds additional characters at cutoff points
+    :return: The new print statement with cutoff points included
     """
-    for index in range(cutoff_length, len(text) + cutoff_length, cutoff_length):
+    ANSI_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
+
+    new_str = ""
+    visible_chars = 0
+    index = 0
+
+    while index != len(text):
+        ansi_code_match = ANSI_PATTERN.match(text, index)
+
+        # Prevents counting of ANSI codes towards visible_chars
+        if ansi_code_match:
+            ansi_code = ansi_code_match.group()
+            new_str += ansi_code
+            index = ansi_code_match.end()  # Updates index to skip over ANSI code
+            continue
+
+        current_char = text[index]
         try:
-            mid_word_cutoff = (
-                is_alpha(text[index - 1]) 
-                or is_alpha(text[index]) 
-                and not is_alpha(text[index + 1])
-            )
-        except IndexError:  # Catch for when text length < cutoff length
-            return text
-
-        padding = "-\n\t" if mid_word_cutoff else "\n\t"
+            next_char = text[index + 1]
+        except IndexError:
+            next_char = ""
         
-        if extra_padding is not None:
-            padding += extra_padding
+        visible_chars += 1
+        new_str += current_char
 
-        text = text[:index] + padding + text[index:]
-        index += cutoff_length
+        # Performs hypenation if mid-word cutoff occurs at cutoff
+        if visible_chars == cutoff_length and next_char != ".":
+            try:
+                mid_word_cutoff = (
+                    index + 1 < len(text) and is_alpha(current_char) and is_alpha(next_char)
+                )
+            except IndexError:  # Catch for when text length < cutoff length
+                break
+
+            padding = "-\n\t" if mid_word_cutoff else "\n\t"
+            
+            if extra_padding is not None:
+                padding += extra_padding
+
+            new_str += padding
+            visible_chars = 0  # Resets for next line
+
+        index += 1
     
-    return text
+    return new_str
