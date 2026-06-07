@@ -109,3 +109,19 @@ def rule_matches(rule: dict, signals: set) -> bool:
         ) if any_elems else True
     
     return all_satisfied and any_satisfied
+
+
+def calc_risk_weight(rule: dict) -> int:
+    """
+    Sums up combined risks of a rule based on signals.
+
+    :param rule: The rule to calculate a risk from.
+    :return: An integer value representing risk score.
+    """
+    from models.risk_context import RISK_VALUES
+    
+    rule_elems = rule.get("all", set()) | rule.get("any", set())
+    rule_risk_value = sum(
+        RISK_VALUES[elem] for elem in rule_elems
+    )
+    return rule_risk_value
