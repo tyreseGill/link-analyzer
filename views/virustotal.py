@@ -9,7 +9,7 @@ def print_virus_total_stats(url: str):
     stats = fetch_virustotal_stats(url)
 
     if stats is None:
-        print("\n[INFO] Failed to fetch statistics within alloted time.")
+        print("[INFO] Failed to fetch statistics within alloted time.")
         return
         
     num_undetected, num_harmless, num_suspicious, num_malicious = highlight_stats(stats)
