@@ -68,3 +68,29 @@ def display_load_animation(task_func: Callable, message: str, *args: tuple) -> A
         loader.join()
 
     return result
+
+
+def show_popup_message(message: str, delay_secs: int = 1, countdown_flag: bool = False):
+    """
+    Displays a message for X amount of seconds before disappearing.
+
+    :param message: The text to be temporarily displayed.
+    :param delay_secs: (optional) The delay in seconds until the message is removed.
+    :param countdown_flag: (optional) Determines whether a countdown will be attached.
+    """
+
+    def clear_line(message):
+        sys.stdout.write("\r" + (" " * len(message)))
+        sys.stdout.write("\r")
+        sys.stdout.flush()
+
+    if countdown_flag:
+        for sec in range(delay_secs, 0, -1):
+            new_message = f"{message} in {sec}..."
+            print(new_message, end="\r", flush=True)
+            time.sleep(1)
+            clear_line(new_message)
+    else:  # Generic pop-up message
+        print(message, end="\r", flush=True)
+        time.sleep(delay_secs)
+        clear_line(message)
