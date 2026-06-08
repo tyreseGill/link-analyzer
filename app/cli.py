@@ -1,6 +1,7 @@
 from app.cli_options import *
 from app.parser import SafeArgumentParser
 from models.network.virustotal import virustotal_available
+from utils.animations import show_popup_message
 import argparse
 
 
@@ -44,7 +45,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
 
     if params.virustotal:
         if not vt_available:
-            print("\n[INFO] VirusTotal disabled (no API key found)")
+            show_popup_message("\n[INFO] VirusTotal disabled (no API key found)", delay_secs=2)
 
         params.virustotal = vt_available
 
@@ -86,7 +87,7 @@ def resolve_analysis_flags(params: argparse.Namespace) -> argparse.Namespace:
     
     # Performs passive analysis by default if no specific analysis is specified
     elif not analysis_requested:
-        print('\n[INFO] Running passive analysis by default (no analysis specified)')
+        show_popup_message('\n[INFO] Running passive analysis by default (no analysis specified)', delay_secs=2)
         params.domain_identity = True
         params.url_structure = True
         params.virustotal = vt_available
