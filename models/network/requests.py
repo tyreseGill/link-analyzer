@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from utils.animations import display_load_animation
 import requests
 
 
@@ -30,12 +31,21 @@ def fetch_page_resource(url: str) -> str | None:
     Returns:
         str: A string of HTML/CSS text. Otherwise, none.
     """
-    try:
-        resource = requests.get(url, timeout=5, headers={"User-Agent": "PreviewBot/1.0"})
-        return resource.text
-    except requests.RequestException:
-        return None
+    def connect():
+        try:
+            resource = requests.get(url, timeout=5, headers={"User-Agent": "PreviewBot/1.0"})
+            return resource.text
+        except requests.RequestException:
+            return None
+    
+    # Runs load animation as resource is being fetched
+    page_resource = display_load_animation(
+        connect,
+        "[INFO] Attempting to fetch page resource",
+    )
 
+    return page_resource
+    
 
 def fetch_page_resource_soup(url: str) -> BeautifulSoup | None:
     """
