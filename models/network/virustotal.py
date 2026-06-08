@@ -1,4 +1,5 @@
 import requests
+from utils.animations import display_load_animation
 
 
 def get_api_key() -> str:
@@ -110,24 +111,31 @@ def fetch_virustotal_stats(url: str) -> dict:
     num_retries = 4
     delay_secs = 10
 
-    print("[INFO] Attempting to obtain results of scan.")
-
     # Polls VirusTotal analysis with increasing delays to allow scan completion
     for retry_counter in range(1, num_retries + 1):
-        stats, status = request_url_from_virustotal(analysis_url)
 
-        # Returns complete and meaningful statistics
-        if status == "completed" and any(stats.values()):
-            print()
+        def attempt(retry_counter: int):
+            stats, status = request_url_from_virustotal(analysis_url)
+
+            # Returns complete and meaningful statistics
+            if status == "completed" and any(stats.values()):
+                print("", end="\r", flush=True)  # Clears up INFO statement
+                return stats
+                        
+            # Skip irrelevant sleep time for last attempt
+            if retry_counter < num_retries:
+                time.sleep(delay_secs * retry_counter)
+
+            return None
+
+        # Runs load animation for each attempt
+        stats = display_load_animation(
+            attempt,
+            f"[INFO] Attempt {retry_counter}: Waiting for VirusTotal analysis to finish",
+            retry_counter
+        )
+
+        if stats is not None:
             return stats
-        
-        if retry_counter == 1:
-            print()
-        
-        print(f"[INFO] Attempt {retry_counter}: Analysis not ready yet, retrying...")
-        
-        # Skip irrelevant sleep time for last attempt
-        if retry_counter < num_retries:
-            time.sleep(delay_secs * retry_counter)
 
     return None
