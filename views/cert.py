@@ -7,10 +7,9 @@ from views.helpers import print_header, print_kv
 
 
 def print_cert_analysis(hostname: str, ctx: RiskContext):
-    cert = get_tls_certificate(hostname)
-
     print_header("SSL/TLS Certificate Analysis")
-    print_trusted_chain(cert, ctx)
+    cert = get_tls_certificate(hostname, ctx)
+    print_trusted_chain(cert)
 
     if not cert:
         return
@@ -21,12 +20,8 @@ def print_cert_analysis(hostname: str, ctx: RiskContext):
     print_certificate_relationships(cert, hostname, ctx)
 
 
-def print_trusted_chain(cert: Certificate, ctx: RiskContext):
+def print_trusted_chain(cert: Certificate):
     trusted_ca_chain_flag = highlight_green("Yes") if cert else highlight_red("No")
-
-    if not cert and ctx:
-        ctx.add("unreliable_cert")
-
     print_kv("Trusted Chain", trusted_ca_chain_flag)
 
 

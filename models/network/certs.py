@@ -1,3 +1,7 @@
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.x509 import Certificate as CryptCert
+from utils.animations import display_load_animation
 from models.risk_context import RiskContext
 from models.url.parsing import extract_hostname, extract_url_components
 from datetime import datetime, timezone as tz
@@ -6,24 +10,31 @@ import socket
 
 
 class Certificate:
-    """Represents a TLS certificate provided by a server."""
+    """Represents an SSL/TLS certificate provided by a server."""
 
-    def __init__(self, cert: dict):
-        subject = dict(x[0] for x in cert['subject'])
-        issuer  = dict(x[0] for x in cert['issuer'])
+    def __init__(self, cert: CryptCert):
+        self.subject = cert.subject.rfc4514_string()
+        self.issuer = cert.issuer.rfc4514_string()
+        
+        self.subject_cn = cert.subject.get_attributes_for_oid(
+            x509.NameOID.COMMON_NAME
+        )[0].value
 
-        self.subject_cn = subject['commonName']
-        self.issuer_org_name = issuer['organizationName']
-        self.issuer_cn = issuer['commonName']
-        self.version  = cert['version']
-        self.not_before = datetime.strptime(
-            cert['notBefore'], "%b %d %H:%M:%S %Y %Z"
-        ).replace(tzinfo=tz.utc)
-        self.not_after = datetime.strptime(
-            cert['notAfter'], "%b %d %H:%M:%S %Y %Z"
-        ).replace(tzinfo=tz.utc)
+        self.issuer_country_code = cert.issuer.get_attributes_for_oid(
+            x509.NameOID.COUNTRY_NAME
+        )[0].value
+        self.issuer_org_name = cert.issuer.get_attributes_for_oid(
+            x509.NameOID.ORGANIZATION_NAME
+        )[0].value
+        self.issuer_cn = cert.issuer.get_attributes_for_oid(
+            x509.NameOID.COMMON_NAME
+        )[0].value
+        self.not_after = cert.not_valid_after_utc
+        self.not_before = cert.not_valid_before_utc
         self.sans = [
-            san for _, san in cert['subjectAltName']
+            san.value 
+            for san in 
+            cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
         ]
 
     def __repr__(self):
@@ -48,29 +59,64 @@ class Certificate:
         return age_days
 
 
-def get_tls_certificate(url: str) -> Certificate:
+def get_tls_certificate(url: str, ctx: RiskContext) -> Certificate:
     """
-    Establishes an HTTPS connection to host site and fetches certificate.
+    Establishes an HTTPS connection to host site and fetches SSL/TLS certificate.
 
-    Args:
-        url: URL to obtain certificate from.
-
-    Returns:
-        Certificate: A minimal class object version developed from fetched TLS Certificate.
+    :param url: URL to obtain certificate from.
+    :param ctx: RiskContext object to add context to.
+    :return: A Certificate class object version developed from fetched SSL/TLS Certificate.
     """
     hostname = extract_hostname(url)
 
-    # Early return if certificate chain is trusted
-    try:
-        context = ssl.create_default_context()
-     
-        with context.wrap_socket(socket.socket(), server_hostname=hostname) as sock:
-            sock.connect((hostname, 443))
-            cert = sock.getpeercert()
-    except (ssl.SSLError, OSError):
-        return None
+    # Disables verification to allow for inspection of certificate details
+    insecure_context = ssl.create_default_context() 
+    insecure_context.check_hostname = False
+    insecure_context.verify_mode = ssl.CERT_NONE
 
-    return Certificate(cert)
+    contexts = {
+        "secure SSL/TLS certificate": (
+            ssl.create_default_context()      # Ensures valid certificate
+        ),
+        "insecure SSL/TLS certificate": (
+            insecure_context                  # Fallback when certificate is invalid
+        )
+    }
+
+    # Attempts to obtain SSL/TLS certificate
+    for cert_type, context in contexts.items():
+        def fetch_certificate():
+            try:
+                with socket.create_connection((hostname, 443), timeout=10) as sock:
+                    with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+                        # Fetches binary of certificate
+                        cert_bytes = ssock.getpeercert(binary_form=True)
+
+                        # Converts certificate from binary to DER format
+                        cert = x509.load_der_x509_certificate(
+                            cert_bytes,
+                            default_backend()
+                        )
+
+                        # Returns meaningful certificate if error doesn't occur
+                        if cert is not None:
+                            return Certificate(cert)
+
+            except ssl.SSLError:  # Handles error in certificate verification process
+                ctx.add("unreliable_cert")
+
+            return None
+
+        result = display_load_animation(
+            fetch_certificate,
+            f"Attempting to fetch {cert_type}"
+        )
+
+        if result is not None:
+            return result
+
+    print("[INFO] Failed to fetch SSL/TLS certificate.")
+    return None
 
 
 def verify_hostname(cert: Certificate, url: str, ctx: RiskContext) -> bool:
