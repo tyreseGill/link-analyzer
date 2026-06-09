@@ -2,3 +2,4 @@ beautifulsoup4
 python-whois
 requests
 tldextract
+cryptography
