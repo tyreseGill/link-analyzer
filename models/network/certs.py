@@ -121,19 +121,39 @@ def get_tls_certificate(url: str, ctx: RiskContext) -> Certificate:
 
 def verify_hostname(cert: Certificate, url: str, ctx: RiskContext) -> bool:
     """
-    Performs check to verify that hostname and certificate match.
-    Ensures the site is secure and not fraudulent.
+    Performs check to verify that hostname and certificate match,
+    ensuring the site is secure and not fraudulent.
 
-    Args:
-        cert: Certificate to parse.
-        url: Url to inspect.
-
-    Returns:
-        bool: True, if hostname matches certificate information. Else, false.
+    :param cert: Certificate to parse.
+    :param url: Url to inspect.
+    :return: True, if hostname matches certificate information. Else, false.
     """
     sub, dom, tld = extract_url_components(url)
-    hostnames = [f"{sub}.{dom}.{tld}", f"{dom}.{tld}"]
-    match_found = any(san.replace('*.', '') in hostnames for san in cert.sans)
+    hostname = f"{dom}.{tld}"
+    match_found = False
+
+    # Includes subdomain in hostname if a subdomain exists
+    if sub:
+        hostname = f"{sub}.{dom}.{tld}"
+
+    for san in cert.sans:
+        # Comparison check for comparing hostname to a SAN with a wildcard subdomain
+        if san.startswith("*."):
+            base_domain = san[2:]  # Normalizes domain name to exclude wildcard subdomains
+            same_domain = hostname.endswith("." + base_domain)                # Checks if domain name is same
+            same_depth = (hostname.count(".") == base_domain.count(".") + 1)  # Checks if domain level is same
+
+            if same_domain and same_depth:
+                match_found = True
+
+        # Comparison check for comparing hostname with explicit SAN
+        else:
+            if san == hostname:
+                match_found = True
+        
+        # Breaks loop when match found to avoid overwrite
+        if match_found:
+            break
 
     if not match_found:
         ctx.add("hostname_mismatch")
