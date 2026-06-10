@@ -30,7 +30,7 @@ RULES = [
     },
     # Transport Security
     {
-        "name": "Insecure Network",
+        "name": "Insecure Connection",
         "all": {"no_https"}
     },
     # SSL/TLS Certificate
